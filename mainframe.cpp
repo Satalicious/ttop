@@ -5,8 +5,11 @@
 #include <wx/url.h>
 #include <wx/wx.h>
 #include <curl/curl.h>
+#include <curl/easy.h>
 #include <wx/generic/grid.h>
 #include <wx/frame.h>
+
+
 
 static size_t writeCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
@@ -21,6 +24,8 @@ void MainFrame::OnPaint(wxPaintEvent& event)
 }
 
 
+
+
 MainFrame::MainFrame(const wxString& title)
   : wxFrame(nullptr, wxID_ANY, title) {
   wxPanel* panel = new wxPanel(this);
@@ -30,7 +35,7 @@ MainFrame::MainFrame(const wxString& title)
                                         wxPoint(450,308), wxSize(400,70));
 
   wxCheckBox* nowOpenBox = new wxCheckBox(panel, wxID_ANY, "Now Open",
-                                    wxPoint(520,40), wxSize(200,100));
+                                    wxPoint(520,50), wxSize(200,100));
 
   wxCheckBox* locationBox = new wxCheckBox(panel, wxID_ANY, "Use Location",
                                       wxPoint(520,110), wxSize(200,100));
