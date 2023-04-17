@@ -16,8 +16,7 @@
 
 
 
-static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp)
-{
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     size_t realsize = size * nmemb;
     if (realsize > 0) {
         const char* charContents = static_cast<char*>(contents);
@@ -28,6 +27,10 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::stri
     return realsize;
 }
 
+void MainFrame::OnChoiceSelected(wxCommandEvent& event) {
+    regionsDropDownSelection = regionsDropDown->GetSelection();
+    fetchCounties();
+}
 
 
 void MainFrame::fetchRegions() {
@@ -65,25 +68,20 @@ void MainFrame::fetchRegions() {
               std::string parseErrors;
 
               std::istringstream readBufferStream(readBuffer);
-              if (Json::parseFromStream(readerBuilder, readBufferStream, &jsonResponse, &parseErrors)) {
-                  // Do something with the parsed JSON data
+                if (Json::parseFromStream(readerBuilder, readBufferStream, &jsonResponse, &parseErrors)) {
                     if (jsonResponse.isArray()) {
                         for (const auto& region : jsonResponse) {
-                            // Access the values in the JSON object
-                            int id = region["id"].asInt();
                             std::string name = region["name"].asString();
 
                             // Convert the name to wxString with UTF-8 encoding
-                            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-                            std::wstring wname = converter.from_bytes(name);
-                            wxString wxName(wname);
+                            wxString wxName(name.c_str(), wxConvUTF8);
 
-                            // Log the values using wxLogDebug
+                            // Log the values using std::cout
                             std::cout << "Name: " << wxName.ToUTF8().data() << std::endl;
-                            regions->Add(wxName.ToUTF8().data());
-                            }
+                            regions->Add(wxName);
                         }
-              } else {
+                    }
+                } else {
                   wxString errMsg = wxString::Format("Failed to parse JSON: %s", parseErrors.c_str());
                   wxMessageBox(errMsg, "JSON Parse Error", wxOK | wxICON_ERROR, this);
               } } else {
@@ -91,13 +89,12 @@ void MainFrame::fetchRegions() {
                 wxMessageBox(errMsg, "API Response Error", wxOK | wxICON_ERROR, this);
             }
         }
-        wxLogDebug("API Response: %s", readBuffer.c_str());
-
         curl_easy_cleanup(curl);
         if (headers) {
             curl_slist_free_all(headers);
         }
     }
+
     curl_global_cleanup();
 }
 
@@ -120,6 +117,77 @@ void MainFrame::fetchWelcomingText() {
       curl_easy_cleanup(curl);
   }
   wxLogStatus("%s", response.c_str());
+}
+
+
+void MainFrame::fetchCounties() {
+    CURL* curl = curl_easy_init();
+    CURLcode res;
+    std::string readBuffer;
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+
+    curl = curl_easy_init();
+    std::string fetchString = "https://api.e-control.at/sprit/1.0/search/gas-stations/by-region?code=";
+
+    // Append the integer value to the fetchString
+    fetchString += std::to_string(regionsDropDownSelection);
+    fetchString += "&type=BL&fuelType=DIE&includeClosed=true";
+
+    if(curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, fetchString.c_str());
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+
+        // Set custom headers
+        struct curl_slist* headers = NULL;
+        headers = curl_slist_append(headers, "accept: application/json");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+        res = curl_easy_perform(curl);
+
+
+        if(res != CURLE_OK) {
+            wxString errMsg(curl_easy_strerror(res));
+            wxMessageBox(errMsg, "API Request Error", wxOK | wxICON_ERROR, this);
+        } else {
+            long response_code;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+
+            if (response_code == 200) {
+              Json::CharReaderBuilder readerBuilder;
+              Json::Value jsonResponse;
+              std::string parseErrors;
+
+              std::istringstream readBufferStream(readBuffer);
+                if (Json::parseFromStream(readerBuilder, readBufferStream, &jsonResponse, &parseErrors)) {
+                    if (jsonResponse.isArray()) {
+                        for (const auto& region : jsonResponse) {
+                            std::string name = region["name"].asString();
+
+                            // Convert the name to wxString with UTF-8 encoding
+                            wxString wxName(name.c_str(), wxConvUTF8);
+
+                            // Log the values using std::cout
+                            std::cout << "Name: " << wxName.ToUTF8().data() << std::endl;
+                            regions->Add(wxName);
+                        }
+                    }
+                } else {
+                  wxString errMsg = wxString::Format("Failed to parse JSON: %s", parseErrors.c_str());
+                  wxMessageBox(errMsg, "JSON Parse Error", wxOK | wxICON_ERROR, this);
+              } } else {
+                wxString errMsg = wxString::Format("Server responded with code: %ld", response_code);
+                wxMessageBox(errMsg, "API Response Error", wxOK | wxICON_ERROR, this);
+            }
+        }
+        curl_easy_cleanup(curl);
+        if (headers) {
+            curl_slist_free_all(headers);
+        }
+    }
+    curl_global_cleanup();
 }
 
 void MainFrame::OnPaint(wxPaintEvent& event) {
@@ -193,9 +261,11 @@ MainFrame::MainFrame(const wxString& title)
 
 
 
+
   fetchRegions();
   fetchWelcomingText();
   regionsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,110),wxSize(280,-1), *regions);
+  regionsDropDown->Bind(wxEVT_CHOICE, &MainFrame::OnChoiceSelected, this);
   regionsDropDown->Select(0);
 
 }

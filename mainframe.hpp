@@ -9,6 +9,8 @@ public:
 private:
   wxArrayString* regions;
   wxChoice* regionsDropDown;
+  int regionsDropDownSelection;
+
   void on_button_clear_clicked(wxCommandEvent& evt);
   void clear_last_char(wxCommandEvent& evt);
   void add_char(wxCommandEvent& evt, const wxString& character);
@@ -18,7 +20,8 @@ private:
 
   void fetchWelcomingText();
   void fetchRegions();
-
+  void fetchCounties();
+  void OnChoiceSelected(wxCommandEvent& event);
 
 };
 
