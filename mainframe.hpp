@@ -8,7 +8,9 @@ public:
   MainFrame(const wxString& title);
 private:
   wxArrayString* regions;
+  wxArrayString* postals;
   wxChoice* regionsDropDown;
+  wxChoice* postalDropDown;
   int regionsDropDownSelection;
 
   void on_button_clear_clicked(wxCommandEvent& evt);
@@ -20,7 +22,7 @@ private:
 
   void fetchWelcomingText();
   void fetchRegions();
-  void fetchCounties();
+  void fetchPostals();
   void OnChoiceSelected(wxCommandEvent& event);
 
 };

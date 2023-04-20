@@ -27,9 +27,30 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::stri
     return realsize;
 }
 
+void MainFrame::fetchWelcomingText() {
+    CURL* curl = curl_easy_init();
+  std::string response;
+  //std::vector res;
+  // https://api.e-control.at/sprit/1.0/regions/units
+  if (curl) {
+      curl_easy_setopt(curl, CURLOPT_URL, "https://api.e-control.at/sprit/1.0/ping");
+      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+      CURLcode res = curl_easy_perform(curl);
+      if (res != CURLE_OK) {
+        // handle error
+        wxLogStatus("curl_easy_perform() failed: %s\n",curl_easy_strerror(res));
+      }
+
+      curl_easy_cleanup(curl);
+  }
+  wxLogStatus("%s", response.c_str());
+}
+
 void MainFrame::OnChoiceSelected(wxCommandEvent& event) {
     regionsDropDownSelection = regionsDropDown->GetSelection();
-    fetchCounties();
+    if(regionsDropDownSelection > 0)
+        fetchPostals();
 }
 
 
@@ -78,6 +99,7 @@ void MainFrame::fetchRegions() {
 
                             // Log the values using std::cout
                             std::cout << "Name: " << wxName.ToUTF8().data() << std::endl;
+
                             regions->Add(wxName);
                         }
                     }
@@ -99,28 +121,8 @@ void MainFrame::fetchRegions() {
 }
 
 
-void MainFrame::fetchWelcomingText() {
-    CURL* curl = curl_easy_init();
-  std::string response;
-  //std::vector res;
-  // https://api.e-control.at/sprit/1.0/regions/units
-  if (curl) {
-      curl_easy_setopt(curl, CURLOPT_URL, "https://api.e-control.at/sprit/1.0/ping");
-      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-      CURLcode res = curl_easy_perform(curl);
-      if (res != CURLE_OK) {
-        // handle error
-        wxLogStatus("curl_easy_perform() failed: %s\n",curl_easy_strerror(res));
-      }
 
-      curl_easy_cleanup(curl);
-  }
-  wxLogStatus("%s", response.c_str());
-}
-
-
-void MainFrame::fetchCounties() {
+void MainFrame::fetchPostals() {
     CURL* curl = curl_easy_init();
     CURLcode res;
     std::string readBuffer;
@@ -128,14 +130,8 @@ void MainFrame::fetchCounties() {
     curl_global_init(CURL_GLOBAL_DEFAULT);
 
     curl = curl_easy_init();
-    std::string fetchString = "https://api.e-control.at/sprit/1.0/search/gas-stations/by-region?code=";
-
-    // Append the integer value to the fetchString
-    fetchString += std::to_string(regionsDropDownSelection);
-    fetchString += "&type=BL&fuelType=DIE&includeClosed=true";
-
     if(curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, fetchString.c_str());
+        curl_easy_setopt(curl, CURLOPT_URL, "https://api.e-control.at/sprit/1.0/regions?includeCities=false");
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
@@ -161,20 +157,29 @@ void MainFrame::fetchCounties() {
               std::string parseErrors;
 
               std::istringstream readBufferStream(readBuffer);
-                if (Json::parseFromStream(readerBuilder, readBufferStream, &jsonResponse, &parseErrors)) {
-                    if (jsonResponse.isArray()) {
-                        for (const auto& region : jsonResponse) {
-                            std::string name = region["name"].asString();
+               if (Json::parseFromStream(readerBuilder, readBufferStream, &jsonResponse, &parseErrors)) {
+    if (jsonResponse.isArray()) {
+            const auto& subRegions = jsonResponse[regionsDropDownSelection - 1]["subRegions"];
 
-                            // Convert the name to wxString with UTF-8 encoding
-                            wxString wxName(name.c_str(), wxConvUTF8);
+            if (subRegions.isArray()) {
+                for (const auto& subRegion : subRegions) {
+                    const auto& postalCodes = subRegion["postalCodes"];
+
+                    if (postalCodes.isArray()) {
+                        for (const auto& postalCode : postalCodes) {
+                            std::string postalCodeStr = postalCode.asString();
+
+                            // Convert the postal code to wxString with UTF-8 encoding
+                            wxString wxPostalCode(postalCodeStr.c_str(), wxConvUTF8);
 
                             // Log the values using std::cout
-                            std::cout << "Name: " << wxName.ToUTF8().data() << std::endl;
-                            regions->Add(wxName);
+                            std::cout << wxPostalCode.ToUTF8().data() << std::endl;
                         }
                     }
-                } else {
+                }
+            }
+    }
+} else {
                   wxString errMsg = wxString::Format("Failed to parse JSON: %s", parseErrors.c_str());
                   wxMessageBox(errMsg, "JSON Parse Error", wxOK | wxICON_ERROR, this);
               } } else {
@@ -187,6 +192,7 @@ void MainFrame::fetchCounties() {
             curl_slist_free_all(headers);
         }
     }
+
     curl_global_cleanup();
 }
 
@@ -212,19 +218,6 @@ MainFrame::MainFrame(const wxString& title)
   wxButton* goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 150),
                                   wxSize(100, 100));
 
-  regions = new wxArrayString;
-  regions->Add("REGION");
-
-  wxArrayString county;
-  county.Add("COUNTY");
-  county.Add("Graz");
-  wxChoice* countiesDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,200),wxSize(280,-1), county);
-  countiesDropDown->Select(0);
-
-  wxArrayString fuelType;
-  fuelType.Add("FUEL TYPE");
-  wxChoice* fuelsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(520,200),wxSize(280,-1), fuelType);
-  fuelsDropDown->Select(0);
 
   wxGrid* grid = new wxGrid( panel,-1, wxPoint( 0, 354 ), wxSize( 1200, 800 ) );
   // (100 rows and 10 columns in this example)
@@ -259,7 +252,17 @@ MainFrame::MainFrame(const wxString& title)
   CreateStatusBar();
   Bind(wxEVT_PAINT, &MainFrame::OnPaint, this);
 
+  regions = new wxArrayString;
+  regions->Add("REGION");
 
+  postals = new wxArrayString;
+  postals->Add("POSTAL CODE");
+
+
+  wxArrayString fuelType;
+  fuelType.Add("FUEL TYPE");
+  wxChoice* fuelsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(520,200),wxSize(280,-1), fuelType);
+  fuelsDropDown->Select(0);
 
 
   fetchRegions();
@@ -267,6 +270,9 @@ MainFrame::MainFrame(const wxString& title)
   regionsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,110),wxSize(280,-1), *regions);
   regionsDropDown->Bind(wxEVT_CHOICE, &MainFrame::OnChoiceSelected, this);
   regionsDropDown->Select(0);
+
+  postalDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,200),wxSize(280,-1), *postals);
+  postalDropDown->Select(0);
 
 }
 
