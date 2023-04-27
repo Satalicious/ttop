@@ -1,5 +1,6 @@
 #ifndef MAINFRAME_HPP
 #define MAINFRAME_HPP
+#include <wx/generic/grid.h>
 
 #include <wx/wx.h>
 
@@ -20,10 +21,18 @@ private:
   void on_textField_change(wxCommandEvent& evt);
   void OnPaint(wxPaintEvent& event);
 
+  wxStaticText* resultLabel;
+  wxPanel* panel;
   void fetchWelcomingText();
   void fetchRegions();
   void fetchPostals();
   void OnChoiceSelected(wxCommandEvent& event);
+  wxCheckBox* nowOpenBox;
+  wxCheckBox* locationBox;
+  wxButton* goButton;
+  wxChoice* fuelsDropDown;
+  wxGrid* grid;
+  wxChoice* countiesDropDown;
 
 };
 
