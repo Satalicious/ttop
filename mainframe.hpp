@@ -10,8 +10,10 @@ public:
 private:
   wxArrayString* regions;
   wxArrayString* postals;
+  wxArrayString fuelType;
   wxChoice* regionsDropDown;
   wxChoice* postalDropDown;
+  wxChoice* fuelsDropDown;
   int regionsDropDownSelection;
 
   void on_button_clear_clicked(wxCommandEvent& evt);
@@ -30,7 +32,6 @@ private:
   wxCheckBox* nowOpenBox;
   wxCheckBox* locationBox;
   wxButton* goButton;
-  wxChoice* fuelsDropDown;
   wxGrid* grid;
   wxChoice* countiesDropDown;
 

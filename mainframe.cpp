@@ -3,18 +3,14 @@
 #include <wx/wx.h>
 #include <wx/protocol/http.h>
 #include <wx/url.h>
-#include <wx/wx.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <wx/generic/grid.h>
 #include <wx/frame.h>
-#include <wx/wx.h>
 
 #include <jsoncpp/json/json.h>
 #include <locale>
 #include <codecvt>
-
-
 
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     size_t realsize = size * nmemb;
@@ -49,10 +45,12 @@ void MainFrame::fetchWelcomingText() {
 
 void MainFrame::OnChoiceSelected(wxCommandEvent& event) {
     regionsDropDownSelection = regionsDropDown->GetSelection();
-    if(regionsDropDownSelection > 0)
+    if(regionsDropDownSelection > 0) {
         fetchPostals();
+    } else {
+        postalDropDown->Clear();
+    }
 }
-
 
 void MainFrame::fetchRegions() {
     CURL* curl = curl_easy_init();
@@ -123,6 +121,9 @@ void MainFrame::fetchRegions() {
 
 
 void MainFrame::fetchPostals() {
+    postalDropDown->Clear();
+    postals->Clear();
+
     CURL* curl = curl_easy_init();
     CURLcode res;
     std::string readBuffer;
@@ -142,7 +143,6 @@ void MainFrame::fetchPostals() {
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
         res = curl_easy_perform(curl);
-
 
         if(res != CURLE_OK) {
             wxString errMsg(curl_easy_strerror(res));
@@ -175,10 +175,13 @@ void MainFrame::fetchPostals() {
                                         // Log the values using std::cout
                                         std::cout << wxPostalCode.ToUTF8().data() << std::endl;
 
-                                        //postals->Add("hi");
+                                        postals->Add(wxPostalCode.ToUTF8().data());
                                     }
                                 }
                             }
+
+                            postalDropDown->Append(*postals);
+                            postalDropDown->Select(0);
                         }
                 }
             } else {
@@ -220,7 +223,6 @@ MainFrame::MainFrame(const wxString& title)
   goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 150),
                                   wxSize(100, 100));
 
-
   grid = new wxGrid( panel,-1, wxPoint( 0, 354 ), wxSize( 1200, 800 ) );
   // (100 rows and 10 columns in this example)
   grid->CreateGrid( 15, 4 );
@@ -251,6 +253,7 @@ MainFrame::MainFrame(const wxString& title)
   grid->SetCellValue(0, 3, "3.1415");
 
 
+
   CreateStatusBar();
   Bind(wxEVT_PAINT, &MainFrame::OnPaint, this);
 
@@ -258,23 +261,24 @@ MainFrame::MainFrame(const wxString& title)
   regions->Add("REGION");
 
   postals = new wxArrayString;
-  postals->Add("POSTAL CODE");
 
 
-  wxArrayString fuelType;
-  fuelType.Add("FUEL TYPE");
-  wxChoice* fuelsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(520,200),wxSize(280,-1), fuelType);
+  fuelType = *new wxArrayString;
+  fuelType.Add("DIE");
+  fuelType.Add("SUP");
+  fuelType.Add("GAS");
+  fuelsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(520,200),wxSize(280,60), fuelType);
   fuelsDropDown->Select(0);
 
 
   fetchRegions();
   fetchWelcomingText();
-  regionsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,110),wxSize(280,-1), *regions);
+  regionsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,110),wxSize(280,60), *regions);
   regionsDropDown->Bind(wxEVT_CHOICE, &MainFrame::OnChoiceSelected, this);
   regionsDropDown->Select(0);
 
-  postalDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,200),wxSize(280,-1), *postals);
-  postalDropDown->Select(0);
+  postalDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,200),wxSize(280,60));
+
 
 }
 
