@@ -10,7 +10,7 @@
 #include <wx/frame.h>
 #include <wx/wx.h>
 
-#include <jsoncpp/json/json.h>
+#include <json/json.h>
 #include <locale>
 #include <codecvt>
 
@@ -198,18 +198,18 @@ void MainFrame::OnPaint(wxPaintEvent& event) {
 
 MainFrame::MainFrame(const wxString& title)
   : wxFrame(nullptr, wxID_ANY, title) {
-  wxPanel* panel = new wxPanel(this);
+  panel = new wxPanel(this);
 
-  wxStaticText* resultLabel = new wxStaticText(panel, wxID_ANY, "Results",
+  resultLabel = new wxStaticText(panel, wxID_ANY, "Results",
                                         wxPoint(450,308), wxSize(400,70));
 
-  wxCheckBox* nowOpenBox = new wxCheckBox(panel, wxID_ANY, "NOW OPEN",
+  nowOpenBox = new wxCheckBox(panel, wxID_ANY, "NOW OPEN",
                                     wxPoint(520,50), wxSize(200,100));
 
-  wxCheckBox* locationBox = new wxCheckBox(panel, wxID_ANY, "USE LOCATION",
+  locationBox = new wxCheckBox(panel, wxID_ANY, "USE LOCATION",
                                       wxPoint(520,110), wxSize(200,100));
 
-  wxButton* goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 150),
+  goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 150),
                                   wxSize(100, 100));
 
   regions = new wxArrayString;
@@ -218,15 +218,15 @@ MainFrame::MainFrame(const wxString& title)
   wxArrayString county;
   county.Add("COUNTY");
   county.Add("Graz");
-  wxChoice* countiesDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,200),wxSize(280,-1), county);
+  countiesDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,200),wxSize(280,-1), county);
   countiesDropDown->Select(0);
 
   wxArrayString fuelType;
   fuelType.Add("FUEL TYPE");
-  wxChoice* fuelsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(520,200),wxSize(280,-1), fuelType);
+  fuelsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(520,200),wxSize(280,-1), fuelType);
   fuelsDropDown->Select(0);
 
-  wxGrid* grid = new wxGrid( panel,-1, wxPoint( 0, 354 ), wxSize( 1200, 800 ) );
+  grid = new wxGrid( panel,-1, wxPoint( 0, 354 ), wxSize( 1200, 800 ) );
   // (100 rows and 10 columns in this example)
   grid->CreateGrid( 15, 4 );
   // We can set the sizes of individual rows and columns
