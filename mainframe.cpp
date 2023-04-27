@@ -158,28 +158,30 @@ void MainFrame::fetchPostals() {
 
               std::istringstream readBufferStream(readBuffer);
                if (Json::parseFromStream(readerBuilder, readBufferStream, &jsonResponse, &parseErrors)) {
-    if (jsonResponse.isArray()) {
-            const auto& subRegions = jsonResponse[regionsDropDownSelection - 1]["subRegions"];
+                if (jsonResponse.isArray()) {
+                        const auto& subRegions = jsonResponse[regionsDropDownSelection - 1]["subRegions"];
 
-            if (subRegions.isArray()) {
-                for (const auto& subRegion : subRegions) {
-                    const auto& postalCodes = subRegion["postalCodes"];
+                        if (subRegions.isArray()) {
+                            for (const auto& subRegion : subRegions) {
+                                const auto& postalCodes = subRegion["postalCodes"];
 
-                    if (postalCodes.isArray()) {
-                        for (const auto& postalCode : postalCodes) {
-                            std::string postalCodeStr = postalCode.asString();
+                                if (postalCodes.isArray()) {
+                                    for (const auto& postalCode : postalCodes) {
+                                        std::string postalCodeStr = postalCode.asString();
 
-                            // Convert the postal code to wxString with UTF-8 encoding
-                            wxString wxPostalCode(postalCodeStr.c_str(), wxConvUTF8);
+                                        // Convert the postal code to wxString with UTF-8 encoding
+                                        wxString wxPostalCode(postalCodeStr.c_str(), wxConvUTF8);
 
-                            // Log the values using std::cout
-                            std::cout << wxPostalCode.ToUTF8().data() << std::endl;
+                                        // Log the values using std::cout
+                                        std::cout << wxPostalCode.ToUTF8().data() << std::endl;
+
+                                        //postals->Add("hi");
+                                    }
+                                }
+                            }
                         }
-                    }
                 }
-            }
-    }
-} else {
+            } else {
                   wxString errMsg = wxString::Format("Failed to parse JSON: %s", parseErrors.c_str());
                   wxMessageBox(errMsg, "JSON Parse Error", wxOK | wxICON_ERROR, this);
               } } else {
