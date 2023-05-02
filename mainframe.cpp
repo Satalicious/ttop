@@ -12,6 +12,8 @@
 #include <locale>
 #include <codecvt>
 
+
+
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     size_t realsize = size * nmemb;
     if (realsize > 0) {
@@ -23,25 +25,76 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::stri
     return realsize;
 }
 
+void MainFrame::nowOpenBox_Changed(wxCommandEvent& event) {
+  if (nowOpenBox->IsChecked()) {
+    std::cout << "nowopen: checked" << std::endl;
+  } else {
+    std::cout << "nowopen: unchecked" << std::endl;
+  }
+}
+
+void MainFrame::locationBox_Changed(wxCommandEvent& event) {
+    // we wont need this function in future but the IsChecked()
+    if(locationBox->IsChecked()) {
+        std::cout << "locationbox: checked" << std::endl;
+    } else {
+        std::cout << "locationbox: unchecked" << std::endl;
+    }
+}
+
+void MainFrame::OnFuelTypeSelected(wxCommandEvent& event) {
+    int selectedFuelTypeIndex = fuelsDropDown->GetSelection();
+
+    switch (selectedFuelTypeIndex) {
+        case 1:
+            std::cout << "DIE is selected" << std::endl;
+            break;
+        case 2:
+            std::cout << "SUP is selected" << std::endl;
+            break;
+        case 3:
+            std::cout << "GAS is selected" << std::endl;
+            break;
+        default:
+            std::cout << "Unknown fuel type selected" << std::endl;
+            break;
+    }
+}
+
+
+
 void MainFrame::fetchWelcomingText() {
     CURL* curl = curl_easy_init();
-  std::string response;
-  //std::vector res;
-  // https://api.e-control.at/sprit/1.0/regions/units
-  if (curl) {
-      curl_easy_setopt(curl, CURLOPT_URL, "https://api.e-control.at/sprit/1.0/ping");
-      curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-      curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-      CURLcode res = curl_easy_perform(curl);
-      if (res != CURLE_OK) {
-        // handle error
-        wxLogStatus("curl_easy_perform() failed: %s\n",curl_easy_strerror(res));
-      }
+    std::string response;
+    if (curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, "https://api.e-control.at/sprit/1.0/ping");
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        CURLcode res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            // handle error
+            wxLogStatus("curl_easy_perform() failed: %s\n",curl_easy_strerror(res));
+        }
 
-      curl_easy_cleanup(curl);
-  }
-  wxLogStatus("%s", response.c_str());
+        curl_easy_cleanup(curl);
+    }
+
+    // Create a temporary scope to modify and restore the font
+    {
+        wxStatusBar* statusBar = GetStatusBar();
+        if (statusBar) {
+            wxFont originalFont = statusBar->GetFont();
+            int fontSize = 16;
+            wxFont newFont = originalFont;
+            newFont.SetPointSize(fontSize);
+            statusBar->SetFont(newFont);
+            wxLogStatus("%s\t\t\t  Djon & sata", response.c_str());
+        } else {
+            wxLogStatus("Connection to API failed :(");
+        }
+    }
 }
+
 
 void MainFrame::OnChoiceSelected(wxCommandEvent& event) {
     regionsDropDownSelection = regionsDropDown->GetSelection();
@@ -172,15 +225,15 @@ void MainFrame::fetchPostals() {
                                         // Convert the postal code to wxString with UTF-8 encoding
                                         wxString wxPostalCode(postalCodeStr.c_str(), wxConvUTF8);
 
-                                        // Log the values using std::cout
                                         std::cout << wxPostalCode.ToUTF8().data() << std::endl;
 
-                                        postals->Add(wxPostalCode.ToUTF8().data());
+                                        postals->Add(wxPostalCode);
+
                                     }
                                 }
                             }
-
-                            postalDropDown->Append(*postals);
+                            postalDropDown->Clear();
+                            postalDropDown->Set(*postals);
                             postalDropDown->Select(0);
                         }
                 }
@@ -208,7 +261,7 @@ void MainFrame::OnPaint(wxPaintEvent& event) {
 }
 
 MainFrame::MainFrame(const wxString& title)
-  : wxFrame(nullptr, wxID_ANY, title) {
+  : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~wxRESIZE_BORDER) {
   panel = new wxPanel(this);
 
   resultLabel = new wxStaticText(panel, wxID_ANY, "Results",
@@ -217,42 +270,14 @@ MainFrame::MainFrame(const wxString& title)
   nowOpenBox = new wxCheckBox(panel, wxID_ANY, "NOW OPEN",
                                     wxPoint(520,50), wxSize(200,100));
 
+  nowOpenBox->Bind(wxEVT_CHECKBOX, &MainFrame::nowOpenBox_Changed, this);
+
   locationBox = new wxCheckBox(panel, wxID_ANY, "USE LOCATION",
                                       wxPoint(520,110), wxSize(200,100));
+  locationBox->Bind(wxEVT_CHECKBOX, &MainFrame::locationBox_Changed, this);
 
   goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 150),
                                   wxSize(100, 100));
-
-  grid = new wxGrid( panel,-1, wxPoint( 0, 354 ), wxSize( 1200, 800 ) );
-  // (100 rows and 10 columns in this example)
-  grid->CreateGrid( 15, 4 );
-  // We can set the sizes of individual rows and columns
-  // in pixels
-  //grid->SetRowSize( 0, 60 );
-  //grid->SetColSize( 0, 200 );
-  grid->SetDefaultRowSize(100,50);
-  grid->SetDefaultColSize(230,100);
-  grid->SetColLabelValue(0,"Name");
-  grid->SetColLabelValue(1,"Distance");
-  grid->SetColLabelValue(2,"Open");
-  grid->SetColLabelValue(3,"Price");
-  // And set grid cell contents as strings
-  grid->SetCellValue( 0, 0, "wxGrid is good" );
-  // We can specify that some cells are read->only
-  grid->SetCellValue( 0, 3, "This is read->only" );
-  grid->SetReadOnly( 0, 3 );
-  // Colours can be specified for grid cell contents
-  grid->SetCellValue(3, 3, "green on grey");
-  grid->SetCellTextColour(3, 3, *wxGREEN);
-  grid->SetCellBackgroundColour(3, 3, *wxLIGHT_GREY);
-  // We can specify the some cells will store numeric
-  // values rather than strings. Here we set grid column 5
-  // to hold floating point values displayed with width of 6
-  // and precision of 2
-  grid->SetColFormatFloat(3, 2, 2);
-  grid->SetCellValue(0, 3, "3.1415");
-
-
 
   CreateStatusBar();
   Bind(wxEVT_PAINT, &MainFrame::OnPaint, this);
@@ -262,13 +287,14 @@ MainFrame::MainFrame(const wxString& title)
 
   postals = new wxArrayString;
 
-
   fuelType = *new wxArrayString;
-  fuelType.Add("DIE");
-  fuelType.Add("SUP");
-  fuelType.Add("GAS");
+  fuelType.Add("FUEL");
+  fuelType.Add("Die");
+  fuelType.Add("Sup");
+  fuelType.Add("Gas");
   fuelsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(520,200),wxSize(280,60), fuelType);
   fuelsDropDown->Select(0);
+  fuelsDropDown->Bind(wxEVT_CHOICE, &MainFrame::OnFuelTypeSelected, this);
 
 
   fetchRegions();
@@ -278,13 +304,4 @@ MainFrame::MainFrame(const wxString& title)
   regionsDropDown->Select(0);
 
   postalDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,200),wxSize(280,60));
-
-
 }
-
-
-
-
-
-
-
