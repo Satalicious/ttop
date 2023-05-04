@@ -12,7 +12,21 @@
 #include <locale>
 #include <codecvt>
 
+void MainFrame::OnPostalCodeEntrySetFocus(wxFocusEvent& event) {
+    wxString currentValue = postalCodeEntry->GetValue();
+    if (currentValue == "Enter postal code") {
+        postalCodeEntry->SetValue("");  // Clear the default value
+    }
+    event.Skip();  // Allow other handlers to process the event
+}
 
+void MainFrame::OnPostalCodeEntryKillFocus(wxFocusEvent& event) {
+    wxString currentValue = postalCodeEntry->GetValue();
+    if (currentValue.IsEmpty()) {
+        postalCodeEntry->SetValue("Enter postal code");  // Restore the default value
+    }
+    event.Skip();  // Allow other handlers to process the event
+}
 
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     size_t realsize = size * nmemb;
@@ -56,12 +70,10 @@ void MainFrame::OnFuelTypeSelected(wxCommandEvent& event) {
             std::cout << "GAS is selected" << std::endl;
             break;
         default:
-            std::cout << "Unknown fuel type selected" << std::endl;
+            std::cout << "No fuel type selected" << std::endl;
             break;
     }
 }
-
-
 
 void MainFrame::fetchWelcomingText() {
     CURL* curl = curl_easy_init();
@@ -94,7 +106,6 @@ void MainFrame::fetchWelcomingText() {
         }
     }
 }
-
 
 void MainFrame::OnChoiceSelected(wxCommandEvent& event) {
     regionsDropDownSelection = regionsDropDown->GetSelection();
@@ -170,8 +181,6 @@ void MainFrame::fetchRegions() {
 
     curl_global_cleanup();
 }
-
-
 
 void MainFrame::fetchPostals() {
     postalDropDown->Clear();
@@ -256,52 +265,53 @@ void MainFrame::fetchPostals() {
 
 void MainFrame::OnPaint(wxPaintEvent& event) {
     wxPaintDC dc(this);
-    dc.DrawLine(0, 350, 1000, 350);
-    dc.DrawLine(0, 400, 1000, 400);
+    dc.DrawLine(0, 550, 1000, 550);
+    dc.DrawLine(0, 600, 1000, 600);
 }
 
 MainFrame::MainFrame(const wxString& title)
   : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~wxRESIZE_BORDER) {
   panel = new wxPanel(this);
 
-  resultLabel = new wxStaticText(panel, wxID_ANY, "Results",
-                                        wxPoint(450,308), wxSize(400,70));
-
-  nowOpenBox = new wxCheckBox(panel, wxID_ANY, "NOW OPEN",
-                                    wxPoint(520,50), wxSize(200,100));
-
-  nowOpenBox->Bind(wxEVT_CHECKBOX, &MainFrame::nowOpenBox_Changed, this);
-
-  locationBox = new wxCheckBox(panel, wxID_ANY, "USE LOCATION",
-                                      wxPoint(520,110), wxSize(200,100));
-  locationBox->Bind(wxEVT_CHECKBOX, &MainFrame::locationBox_Changed, this);
-
-  goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 150),
-                                  wxSize(100, 100));
-
   CreateStatusBar();
   Bind(wxEVT_PAINT, &MainFrame::OnPaint, this);
-
-  regions = new wxArrayString;
-  regions->Add("REGION");
+  fetchWelcomingText();
 
   postals = new wxArrayString;
-
-  fuelType = *new wxArrayString;
-  fuelType.Add("FUEL");
-  fuelType.Add("Die");
-  fuelType.Add("Sup");
-  fuelType.Add("Gas");
-  fuelsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(520,200),wxSize(280,60), fuelType);
-  fuelsDropDown->Select(0);
-  fuelsDropDown->Bind(wxEVT_CHOICE, &MainFrame::OnFuelTypeSelected, this);
-
-
+  regions = new wxArrayString;
+  regions->Add("Select Region");
+  // fetching regions and adding them to 'regions'
   fetchRegions();
-  fetchWelcomingText();
-  regionsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,110),wxSize(280,60), *regions);
+  regionsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,50),wxSize(280,60), *regions);
+  // when a region gets selected, we fetch the postals
   regionsDropDown->Bind(wxEVT_CHOICE, &MainFrame::OnChoiceSelected, this);
   regionsDropDown->Select(0);
 
-  postalDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,200),wxSize(280,60));
+  fuelType = *new wxArrayString;
+  fuelType.Add("Select Fuel");
+  fuelType.Add("Diesel");
+  fuelType.Add("Super");
+  fuelType.Add("Gas");
+  fuelsDropDown = new wxChoice(panel, wxID_ANY, wxPoint(520, 270), wxSize(280, 60), fuelType);
+  fuelsDropDown->Bind(wxEVT_CHOICE, &MainFrame::OnFuelTypeSelected, this);
+  fuelsDropDown->SetSelection(0);
+
+  postalDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,140),wxSize(280,60));
+  
+  // Create a static text to display "OR"
+  wxStaticText* orText = new wxStaticText(panel, wxID_ANY, "OR", wxPoint(220, 220), wxSize(200,200));
+  // Create a text field for the user to enter a postal code
+  postalCodeEntry = new wxTextCtrl(panel, wxID_ANY, "Enter postal code", wxPoint(100, 270), wxSize(280, 60));
+  // Add event handlers for the postal code entry text field
+  postalCodeEntry->Bind(wxEVT_SET_FOCUS, &MainFrame::OnPostalCodeEntrySetFocus, this);
+  postalCodeEntry->Bind(wxEVT_KILL_FOCUS, &MainFrame::OnPostalCodeEntryKillFocus, this);
+
+  nowOpenBox = new wxCheckBox(panel, wxID_ANY, "NOW OPEN", wxPoint(520,30), wxSize(200,100));
+  nowOpenBox->Bind(wxEVT_CHECKBOX, &MainFrame::nowOpenBox_Changed, this);
+
+  locationBox = new wxCheckBox(panel, wxID_ANY, "USE LOCATION", wxPoint(520,120), wxSize(200,100));
+  locationBox->Bind(wxEVT_CHECKBOX, &MainFrame::locationBox_Changed, this);
+
+  goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 130), wxSize(100, 100));
+  resultLabel = new wxStaticText(panel, wxID_ANY, "Results", wxPoint(450,508), wxSize(400,70));
 }
