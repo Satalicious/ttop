@@ -3,7 +3,7 @@ WX_CXXFLAGS := $(shell $(WX_CONFIG) --cxxflags)
 WX_LIBS := $(shell $(WX_CONFIG) --libs)
 
 APPLICATION := ttop
-OBJECTS := mainframe.o app.o  # enter the .o files or generate this list
+OBJECTS := mainframe.o app.o resultwindow.o
 
 LIBS += -lcurl -ljsoncpp `wx-config --libs net`
 

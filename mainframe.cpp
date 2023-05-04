@@ -1,4 +1,5 @@
 #include "mainframe.hpp"
+#include "resultwindow.hpp"
 
 #include <wx/wx.h>
 #include <wx/protocol/http.h>
@@ -11,22 +12,6 @@
 #include <jsoncpp/json/json.h>
 #include <locale>
 #include <codecvt>
-
-void MainFrame::OnPostalCodeEntrySetFocus(wxFocusEvent& event) {
-    wxString currentValue = postalCodeEntry->GetValue();
-    if (currentValue == "Enter postal code") {
-        postalCodeEntry->SetValue("");  // Clear the default value
-    }
-    event.Skip();  // Allow other handlers to process the event
-}
-
-void MainFrame::OnPostalCodeEntryKillFocus(wxFocusEvent& event) {
-    wxString currentValue = postalCodeEntry->GetValue();
-    if (currentValue.IsEmpty()) {
-        postalCodeEntry->SetValue("Enter postal code");  // Restore the default value
-    }
-    event.Skip();  // Allow other handlers to process the event
-}
 
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     size_t realsize = size * nmemb;
@@ -75,6 +60,44 @@ void MainFrame::OnFuelTypeSelected(wxCommandEvent& event) {
     }
 }
 
+void MainFrame::OnPostalCodeEntrySetFocus(wxFocusEvent& event) {
+    wxString currentValue = postalCodeEntry->GetValue();
+    if (currentValue == "Enter postal code") {
+        postalCodeEntry->SetValue("");  // Clear the default value
+    }
+    event.Skip();  // Allow other handlers to process the event
+}
+
+void MainFrame::OnPostalCodeEntryKillFocus(wxFocusEvent& event) {
+    wxString currentValue = postalCodeEntry->GetValue();
+    if (currentValue.IsEmpty()) {
+        postalCodeEntry->SetValue("Enter postal code");  // Restore the default value
+    }
+    event.Skip();  // Allow other handlers to process the event
+}
+
+void MainFrame::OnGoButtonClick(wxCommandEvent& event) {
+    // render 2nd window here
+    // TODO: parse the response data from api
+    ResultWindow* resultWindow = new ResultWindow(this, "New Window Title", fuelType);
+    resultWindow->Show();
+}
+
+void MainFrame::OnChoiceSelected(wxCommandEvent& event) {
+    regionsDropDownSelection = regionsDropDown->GetSelection();
+    if(regionsDropDownSelection > 0) {
+        fetchPostals();
+    } else {
+        postalDropDown->Clear();
+    }
+}
+
+void MainFrame::OnPaint(wxPaintEvent& event) {
+    wxPaintDC dc(this);
+    dc.DrawLine(0, 550, 1000, 550);
+    dc.DrawLine(0, 600, 1000, 600);
+}
+
 void MainFrame::fetchWelcomingText() {
     CURL* curl = curl_easy_init();
     std::string response;
@@ -100,19 +123,10 @@ void MainFrame::fetchWelcomingText() {
             wxFont newFont = originalFont;
             newFont.SetPointSize(fontSize);
             statusBar->SetFont(newFont);
-            wxLogStatus("%s\t\t\t  Djon & sata", response.c_str());
+            wxLogStatus("%s\t\t\t  Timothy & sata", response.c_str());
         } else {
             wxLogStatus("Connection to API failed :(");
         }
-    }
-}
-
-void MainFrame::OnChoiceSelected(wxCommandEvent& event) {
-    regionsDropDownSelection = regionsDropDown->GetSelection();
-    if(regionsDropDownSelection > 0) {
-        fetchPostals();
-    } else {
-        postalDropDown->Clear();
     }
 }
 
@@ -263,12 +277,6 @@ void MainFrame::fetchPostals() {
     curl_global_cleanup();
 }
 
-void MainFrame::OnPaint(wxPaintEvent& event) {
-    wxPaintDC dc(this);
-    dc.DrawLine(0, 550, 1000, 550);
-    dc.DrawLine(0, 600, 1000, 600);
-}
-
 MainFrame::MainFrame(const wxString& title)
   : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~wxRESIZE_BORDER) {
   panel = new wxPanel(this);
@@ -306,12 +314,15 @@ MainFrame::MainFrame(const wxString& title)
   postalCodeEntry->Bind(wxEVT_SET_FOCUS, &MainFrame::OnPostalCodeEntrySetFocus, this);
   postalCodeEntry->Bind(wxEVT_KILL_FOCUS, &MainFrame::OnPostalCodeEntryKillFocus, this);
 
-  nowOpenBox = new wxCheckBox(panel, wxID_ANY, "NOW OPEN", wxPoint(520,30), wxSize(200,100));
+  nowOpenBox = new wxCheckBox(panel, wxID_ANY, "Now Open", wxPoint(520,30), wxSize(200,100));
   nowOpenBox->Bind(wxEVT_CHECKBOX, &MainFrame::nowOpenBox_Changed, this);
 
-  locationBox = new wxCheckBox(panel, wxID_ANY, "USE LOCATION", wxPoint(520,120), wxSize(200,100));
+  locationBox = new wxCheckBox(panel, wxID_ANY, "Use Location", wxPoint(520,120), wxSize(200,100));
   locationBox->Bind(wxEVT_CHECKBOX, &MainFrame::locationBox_Changed, this);
 
   goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 130), wxSize(100, 100));
+  goButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoButtonClick, this);
+
+
   resultLabel = new wxStaticText(panel, wxID_ANY, "Results", wxPoint(450,508), wxSize(400,70));
 }

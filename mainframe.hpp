@@ -23,7 +23,8 @@ private:
   wxGrid* grid;
 
   void OnFuelTypeSelected(wxCommandEvent& event);
-
+  void OnGoButtonClick(wxCommandEvent& event);
+  
   void on_button_clear_clicked(wxCommandEvent& evt);
   void on_textField_change(wxCommandEvent& evt);
   void OnPaint(wxPaintEvent& event);
@@ -39,12 +40,8 @@ private:
   wxCheckBox* locationBox;
   void locationBox_Changed(wxCommandEvent& event);
 
-
-void OnPostalCodeEntrySetFocus(wxFocusEvent& event);
-void OnPostalCodeEntryKillFocus(wxFocusEvent& event);
-
-
-
+  void OnPostalCodeEntrySetFocus(wxFocusEvent& event);
+  void OnPostalCodeEntryKillFocus(wxFocusEvent& event);
 };
 
 #endif  // MAINFRAME_HPP
