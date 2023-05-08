@@ -1,7 +1,6 @@
 #ifndef MAINFRAME_HPP
 #define MAINFRAME_HPP
 #include <wx/generic/grid.h>
-
 #include <wx/wx.h>
 
 class MainFrame : public wxFrame {
@@ -18,7 +17,7 @@ private:
   wxChoice* fuelsDropDown;
   wxTextCtrl* postalCodeEntry;
   wxButton* goButton;
-  wxStaticText* resultLabel;
+  wxStaticText* favoritesLabel;
   
   wxGrid* grid;
 
