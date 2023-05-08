@@ -110,7 +110,6 @@ void MainFrame::fetchWelcomingText() {
             // handle error
             wxLogStatus("curl_easy_perform() failed: %s\n",curl_easy_strerror(res));
         }
-
         curl_easy_cleanup(curl);
     }
 
@@ -123,7 +122,7 @@ void MainFrame::fetchWelcomingText() {
             wxFont newFont = originalFont;
             newFont.SetPointSize(fontSize);
             statusBar->SetFont(newFont);
-            wxLogStatus("%s\t\t\t  Timothy & sata", response.c_str());
+            wxLogStatus("%s\t\t  Timothy & sata", response.c_str());
         } else {
             wxLogStatus("Connection to API failed :(");
         }
