@@ -10,6 +10,7 @@ private:
   int regionsDropDownSelection;
   wxPanel* panel;
   wxArrayString* regions;
+  wxString* regionCode;
   wxArrayString* postals;
   wxArrayString fuelType;
   wxChoice* regionsDropDown;
@@ -21,7 +22,6 @@ private:
   
   wxGrid* grid;
 
-  void OnFuelTypeSelected(wxCommandEvent& event);
   void OnGoButtonClick(wxCommandEvent& event);
   
   void on_button_clear_clicked(wxCommandEvent& evt);
@@ -34,10 +34,8 @@ private:
   void OnChoiceSelected(wxCommandEvent& event);
 
   wxCheckBox* nowOpenBox;
-  void nowOpenBox_Changed(wxCommandEvent& event);
 
   wxCheckBox* locationBox;
-  void locationBox_Changed(wxCommandEvent& event);
 
   void OnPostalCodeEntrySetFocus(wxFocusEvent& event);
   void OnPostalCodeEntryKillFocus(wxFocusEvent& event);

@@ -7,11 +7,12 @@
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <wx/generic/grid.h>
-#include <wx/frame.h>
 
 #include <jsoncpp/json/json.h>
 #include <locale>
 #include <codecvt>
+
+#include <wx/string.h>
 
 static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
     size_t realsize = size * nmemb;
@@ -22,42 +23,6 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::stri
         }
     }
     return realsize;
-}
-
-void MainFrame::nowOpenBox_Changed(wxCommandEvent& event) {
-  if (nowOpenBox->IsChecked()) {
-    std::cout << "nowopen: checked" << std::endl;
-  } else {
-    std::cout << "nowopen: unchecked" << std::endl;
-  }
-}
-
-void MainFrame::locationBox_Changed(wxCommandEvent& event) {
-    // we wont need this function in future but the IsChecked()
-    if(locationBox->IsChecked()) {
-        std::cout << "locationbox: checked" << std::endl;
-    } else {
-        std::cout << "locationbox: unchecked" << std::endl;
-    }
-}
-
-void MainFrame::OnFuelTypeSelected(wxCommandEvent& event) {
-    int selectedFuelTypeIndex = fuelsDropDown->GetSelection();
-
-    switch (selectedFuelTypeIndex) {
-        case 1:
-            std::cout << "DIE is selected" << std::endl;
-            break;
-        case 2:
-            std::cout << "SUP is selected" << std::endl;
-            break;
-        case 3:
-            std::cout << "GAS is selected" << std::endl;
-            break;
-        default:
-            std::cout << "No fuel type selected" << std::endl;
-            break;
-    }
 }
 
 void MainFrame::OnPostalCodeEntrySetFocus(wxFocusEvent& event) {
@@ -79,7 +44,7 @@ void MainFrame::OnPostalCodeEntryKillFocus(wxFocusEvent& event) {
 void MainFrame::OnGoButtonClick(wxCommandEvent& event) {
     // render 2nd window here
     // TODO: parse the response data from api
-    ResultWindow* resultWindow = new ResultWindow(this, "Result", fuelType);
+    ResultWindow* resultWindow = new ResultWindow(this, "Result", *fuelsDropDown, *nowOpenBox, *regionCode);
     resultWindow->Show();
 }
 
@@ -87,9 +52,22 @@ void MainFrame::OnChoiceSelected(wxCommandEvent& event) {
     regionsDropDownSelection = regionsDropDown->GetSelection();
     if(regionsDropDownSelection > 0) {
         fetchPostals();
+
+    int intValue = (regionsDropDownSelection);
+    regionCode = new wxString(wxString::Format(wxT("%d"), intValue));
+
+
     } else {
         postalDropDown->Clear();
     }
+    // Create a text field for the user to enter a postal code
+    postalCodeEntry = new wxTextCtrl(panel, wxID_ANY, "Enter postal code", wxPoint(100, 270), wxSize(280, 60));
+    // Add event handlers for the postal code entry text field
+    postalCodeEntry->Bind(wxEVT_SET_FOCUS, &MainFrame::OnPostalCodeEntrySetFocus, this);
+    postalCodeEntry->Bind(wxEVT_KILL_FOCUS, &MainFrame::OnPostalCodeEntryKillFocus, this);
+    
+    // Create a static text to display "OR"
+    wxStaticText* orText = new wxStaticText(panel, wxID_ANY, "OR", wxPoint(220, 215), wxSize(200,200));
 }
 
 void MainFrame::OnPaint(wxPaintEvent& event) {
@@ -295,29 +273,17 @@ MainFrame::MainFrame(const wxString& title)
   regionsDropDown->Select(0);
 
   fuelType = *new wxArrayString;
-  fuelType.Add("Select Fuel");
   fuelType.Add("Diesel");
   fuelType.Add("Super");
   fuelType.Add("Gas");
   fuelsDropDown = new wxChoice(panel, wxID_ANY, wxPoint(520, 270), wxSize(280, 60), fuelType);
-  fuelsDropDown->Bind(wxEVT_CHOICE, &MainFrame::OnFuelTypeSelected, this);
   fuelsDropDown->SetSelection(0);
 
   postalDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,140),wxSize(280,60));
-  
-  // Create a static text to display "OR"
-  wxStaticText* orText = new wxStaticText(panel, wxID_ANY, "OR", wxPoint(220, 215), wxSize(200,200));
-  // Create a text field for the user to enter a postal code
-  postalCodeEntry = new wxTextCtrl(panel, wxID_ANY, "Enter postal code", wxPoint(100, 270), wxSize(280, 60));
-  // Add event handlers for the postal code entry text field
-  postalCodeEntry->Bind(wxEVT_SET_FOCUS, &MainFrame::OnPostalCodeEntrySetFocus, this);
-  postalCodeEntry->Bind(wxEVT_KILL_FOCUS, &MainFrame::OnPostalCodeEntryKillFocus, this);
 
   nowOpenBox = new wxCheckBox(panel, wxID_ANY, "Now Open", wxPoint(520,30), wxSize(200,100));
-  nowOpenBox->Bind(wxEVT_CHECKBOX, &MainFrame::nowOpenBox_Changed, this);
 
   locationBox = new wxCheckBox(panel, wxID_ANY, "Use Location", wxPoint(520,120), wxSize(200,100));
-  locationBox->Bind(wxEVT_CHECKBOX, &MainFrame::locationBox_Changed, this);
 
   goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 130), wxSize(100, 100));
   goButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoButtonClick, this);
@@ -335,7 +301,7 @@ MainFrame::MainFrame(const wxString& title)
   grid->SetDefaultRowSize(100,50);
   grid->SetDefaultColSize(230,100);
   grid->SetColLabelValue(0,"Name");
-  grid->SetColLabelValue(1,"Distance");
+  grid->SetColLabelValue(1,"Address");
   grid->SetColLabelValue(2,"Open");
   grid->SetColLabelValue(3,"Price");
   // And set grid cell contents as strings
