@@ -125,9 +125,8 @@ ResultWindow::ResultWindow(wxWindow* parent, const wxString& title, const wxChoi
     : wxFrame(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~(wxRESIZE_BORDER | wxMAXIMIZE_BOX)) {
     
     wxString fuelType;
-    wxString isOpen;
+    wxString includeClosed;
     int selectedIndex = fuelsDropDown.GetCurrentSelection();
-
     switch (selectedIndex) {
         case 0:
             fuelType = "DIE";
@@ -143,14 +142,11 @@ ResultWindow::ResultWindow(wxWindow* parent, const wxString& title, const wxChoi
             fuelType = "DIE";
             break;
     }
-
-    isOpen = nowOpenBox.IsChecked() ? "true" : "false";
-
+    includeClosed = nowOpenBox.IsChecked() ? "false" : "true";
     std::string fetchURL = "https://api.e-control.at/sprit/1.0/search/gas-stations/by-region?code=";
-    fetchURL += regionCode.c_str() + "&type=BL&fuelType=" + fuelType.ToStdString() + "&includeClosed=" + isOpen;
-    
+    fetchURL += regionCode.c_str() + "&type=BL&fuelType=" + fuelType.ToStdString() + "&includeClosed=" + includeClosed;
     std::cout << fetchURL << std::endl;
-    //fuelsDropDown.GetSelection();
+
     SetClientSize(1000, 1250);
     Center();
     this->grid = new wxGrid(this, -1, wxPoint(0, 415), wxSize(1200, 800));

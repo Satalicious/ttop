@@ -21,7 +21,6 @@ private:
   wxStaticText* favoritesLabel;
   wxGrid* grid;
   wxCheckBox* nowOpenBox;
-  wxCheckBox* locationBox;
 
   void OnGoButtonClick(wxCommandEvent& event);
   void on_button_clear_clicked(wxCommandEvent& evt);

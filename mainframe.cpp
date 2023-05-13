@@ -276,9 +276,7 @@ MainFrame::MainFrame(const wxString& title)
 
   postalDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,140),wxSize(280,60));
 
-  nowOpenBox = new wxCheckBox(panel, wxID_ANY, "Now Open", wxPoint(520,30), wxSize(200,100));
-
-  locationBox = new wxCheckBox(panel, wxID_ANY, "Use Location", wxPoint(520,120), wxSize(200,100));
+  nowOpenBox = new wxCheckBox(panel, wxID_ANY, "Now Open", wxPoint(520,120), wxSize(200,100));
 
   favoritesLabel = new wxStaticText(panel, wxID_ANY, "Favorites", wxPoint(450,370), wxSize(400,70));
   
