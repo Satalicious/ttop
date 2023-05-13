@@ -43,20 +43,16 @@ void MainFrame::OnPostalCodeEntryKillFocus(wxFocusEvent& event) {
 
 void MainFrame::OnGoButtonClick(wxCommandEvent& event) {
     // render 2nd window here
-    // TODO: parse the response data from api
     ResultWindow* resultWindow = new ResultWindow(this, "Result", *fuelsDropDown, *nowOpenBox, *regionCode);
     resultWindow->Show();
 }
 
-void MainFrame::OnChoiceSelected(wxCommandEvent& event) {
+void MainFrame::OnRegionSelected(wxCommandEvent& event) {
     regionsDropDownSelection = regionsDropDown->GetSelection();
     if(regionsDropDownSelection > 0) {
         fetchPostals();
-
-    int intValue = (regionsDropDownSelection);
-    regionCode = new wxString(wxString::Format(wxT("%d"), intValue));
-
-
+        int intValue = regionsDropDownSelection;
+        regionCode = new wxString(wxString::Format(wxT("%d"), intValue));
     } else {
         postalDropDown->Clear();
     }
@@ -68,6 +64,9 @@ void MainFrame::OnChoiceSelected(wxCommandEvent& event) {
     
     // Create a static text to display "OR"
     wxStaticText* orText = new wxStaticText(panel, wxID_ANY, "OR", wxPoint(220, 215), wxSize(200,200));
+    
+    goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 130), wxSize(100, 100));
+    goButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoButtonClick, this);
 }
 
 void MainFrame::OnPaint(wxPaintEvent& event) {
@@ -120,14 +119,10 @@ void MainFrame::fetchRegions() {
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
-
-        // Set custom headers
         struct curl_slist* headers = NULL;
         headers = curl_slist_append(headers, "accept: application/json");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
         res = curl_easy_perform(curl);
-
 
         if(res != CURLE_OK) {
             wxString errMsg(curl_easy_strerror(res));
@@ -269,7 +264,7 @@ MainFrame::MainFrame(const wxString& title)
   fetchRegions();
   regionsDropDown = new wxChoice(panel, wxID_ANY,wxPoint(100,50),wxSize(280,60), *regions);
   // when a region gets selected, we fetch the postals
-  regionsDropDown->Bind(wxEVT_CHOICE, &MainFrame::OnChoiceSelected, this);
+  regionsDropDown->Bind(wxEVT_CHOICE, &MainFrame::OnRegionSelected, this);
   regionsDropDown->Select(0);
 
   fuelType = *new wxArrayString;
@@ -284,10 +279,6 @@ MainFrame::MainFrame(const wxString& title)
   nowOpenBox = new wxCheckBox(panel, wxID_ANY, "Now Open", wxPoint(520,30), wxSize(200,100));
 
   locationBox = new wxCheckBox(panel, wxID_ANY, "Use Location", wxPoint(520,120), wxSize(200,100));
-
-  goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 130), wxSize(100, 100));
-  goButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoButtonClick, this);
-
 
   favoritesLabel = new wxStaticText(panel, wxID_ANY, "Favorites", wxPoint(450,370), wxSize(400,70));
   

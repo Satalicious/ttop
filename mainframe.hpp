@@ -19,11 +19,11 @@ private:
   wxTextCtrl* postalCodeEntry;
   wxButton* goButton;
   wxStaticText* favoritesLabel;
-  
   wxGrid* grid;
+  wxCheckBox* nowOpenBox;
+  wxCheckBox* locationBox;
 
   void OnGoButtonClick(wxCommandEvent& event);
-  
   void on_button_clear_clicked(wxCommandEvent& evt);
   void on_textField_change(wxCommandEvent& evt);
   void OnPaint(wxPaintEvent& event);
@@ -31,11 +31,7 @@ private:
   void fetchWelcomingText();
   void fetchRegions();
   void fetchPostals();
-  void OnChoiceSelected(wxCommandEvent& event);
-
-  wxCheckBox* nowOpenBox;
-
-  wxCheckBox* locationBox;
+  void OnRegionSelected(wxCommandEvent& event);
 
   void OnPostalCodeEntrySetFocus(wxFocusEvent& event);
   void OnPostalCodeEntryKillFocus(wxFocusEvent& event);

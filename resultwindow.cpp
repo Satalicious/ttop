@@ -11,7 +11,23 @@
 #include <locale>
 #include <codecvt>
 
-/* void ResultWindow::fetchResult() {
+#include <wx/string.h>
+#include <iomanip>  // for std::setprecision and std::fixed
+
+// TODO:
+// use the one from mainframe.cpp
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
+    size_t realsize = size * nmemb;
+    if (realsize > 0) {
+        const char* charContents = static_cast<char*>(contents);
+        if (charContents[0] != '\0') { // Check if the first character is not null
+            userp->append(charContents, realsize);
+        }
+    }
+    return realsize;
+}
+
+void ResultWindow::fetchResult(std::string fetchURL) {
     CURL* curl = curl_easy_init();
     CURLcode res;
     std::string readBuffer;
@@ -20,7 +36,7 @@
 
     curl = curl_easy_init();
     if(curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, "https://api.e-control.at/sprit/1.0/regions?includeCities=false");
+        curl_easy_setopt(curl, CURLOPT_URL, fetchURL.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
         curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
@@ -32,7 +48,6 @@
 
         res = curl_easy_perform(curl);
 
-
         if(res != CURLE_OK) {
             wxString errMsg(curl_easy_strerror(res));
             wxMessageBox(errMsg, "API Request Error", wxOK | wxICON_ERROR, this);
@@ -41,29 +56,46 @@
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
 
             if (response_code == 200) {
-              Json::CharReaderBuilder readerBuilder;
-              Json::Value jsonResponse;
-              std::string parseErrors;
+                Json::CharReaderBuilder readerBuilder;
+                Json::Value jsonResponse;
+                std::string parseErrors;
 
-              std::istringstream readBufferStream(readBuffer);
+                std::istringstream readBufferStream(readBuffer);
                 if (Json::parseFromStream(readerBuilder, readBufferStream, &jsonResponse, &parseErrors)) {
                     if (jsonResponse.isArray()) {
-                        for (const auto& region : jsonResponse) {
-                            std::string name = region["name"].asString();
+                        this->grid->CreateGrid(jsonResponse.size(), 4);
+                        int row = 0;
+                        for (const auto& station : jsonResponse) {
+                            std::string name = station["name"].asString();
+                            std::string address = station["location"]["address"].asString();
+                            std::string open = station["openingHours"][0]["from"].asString() + "-" + station["openingHours"][0]["to"].asString();
+                            float price = station["prices"][0]["amount"].asFloat();
 
-                            // Convert the name to wxString with UTF-8 encoding
+                            // Adjust the precision of the price
+                            std::stringstream stream;
+                            stream << std::fixed << std::setprecision(4) << price;
+                            std::string priceStr = stream.str();
+
+                            // Convert each std::string to wxString
                             wxString wxName(name.c_str(), wxConvUTF8);
+                            wxString wxAddress(address.c_str(), wxConvUTF8);
+                            wxString wxOpen(open.c_str(), wxConvUTF8);
+                            wxString wxPrice(priceStr.c_str(), wxConvUTF8);
 
-                            // Log the values using std::cout
-                            std::cout << "Name: " << wxName.ToUTF8().data() << std::endl;
+                            // Set each cell value
+                            this->grid->SetCellValue(row, 0, wxName);
+                            this->grid->SetCellValue(row, 1, wxAddress);
+                            this->grid->SetCellValue(row, 2, wxOpen);
+                            this->grid->SetCellValue(row, 3, wxPrice);
 
-                            
+                            row++;
                         }
                     }
                 } else {
-                  wxString errMsg = wxString::Format("Failed to parse JSON: %s", parseErrors.c_str());
-                  wxMessageBox(errMsg, "JSON Parse Error", wxOK | wxICON_ERROR, this);
-              } } else {
+                    wxString errMsg = wxString::Format("Failed to parse JSON: %s", parseErrors.c_str());
+                    wxMessageBox(errMsg, "JSON Parse Error", wxOK | wxICON_ERROR, this);
+                }
+            } else {
                 wxString errMsg = wxString::Format("Server responded with code: %ld", response_code);
                 wxMessageBox(errMsg, "API Response Error", wxOK | wxICON_ERROR, this);
             }
@@ -75,8 +107,19 @@
     }
 
     curl_global_cleanup();
-} */
-
+    // change the text size of grid
+    wxFont font(16, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL); 
+    this->grid->SetDefaultCellFont(font);
+    // Set column labels
+    this->grid->SetColLabelValue(0,"Name");
+    this->grid->SetColLabelValue(1,"Address");
+    this->grid->SetColLabelValue(2,"Open");
+    this->grid->SetColLabelValue(3,"Price");
+    this->grid->SetColSize(0, 400); // Increase size for "Name" column
+    this->grid->SetColSize(1, 250); // Increase size for "Name" column
+    this->grid->SetColSize(2, 250 / 2); // Halve size for "Open" column
+    this->grid->SetColSize(3, 250 / 2); // Halve size for "Price" column
+}
 
 ResultWindow::ResultWindow(wxWindow* parent, const wxString& title, const wxChoice& fuelsDropDown, wxCheckBox& nowOpenBox, wxString& regionCode)
     : wxFrame(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~(wxRESIZE_BORDER | wxMAXIMIZE_BOX)) {
@@ -100,41 +143,18 @@ ResultWindow::ResultWindow(wxWindow* parent, const wxString& title, const wxChoi
             fuelType = "DIE";
             break;
     }
-    //std::cout << fuelType.ToStdString() << std::endl;
 
     isOpen = nowOpenBox.IsChecked() ? "true" : "false";
 
-    std::cout << regionCode.c_str() << std::endl;
-
+    std::string fetchURL = "https://api.e-control.at/sprit/1.0/search/gas-stations/by-region?code=";
+    fetchURL += regionCode.c_str() + "&type=BL&fuelType=" + fuelType.ToStdString() + "&includeClosed=" + isOpen;
+    
+    std::cout << fetchURL << std::endl;
     //fuelsDropDown.GetSelection();
     SetClientSize(1000, 1250);
     Center();
-    wxGrid* grid = new wxGrid( this,-1, wxPoint( 0, 415 ), wxSize( 1200, 800 ) );
-    // (100 rows and 10 columns in this example)
-    grid->CreateGrid( 15, 4 );
-    // We can set the sizes of individual rows and columns
-    // in pixels
-    //grid->SetRowSize( 0, 60 );
-    //grid->SetColSize( 0, 200 );
+    this->grid = new wxGrid(this, -1, wxPoint(0, 415), wxSize(1200, 800));
     grid->SetDefaultRowSize(100,50);
     grid->SetDefaultColSize(230,100);
-    grid->SetColLabelValue(0,"Name");
-    grid->SetColLabelValue(1,"Address");
-    grid->SetColLabelValue(2,"Open");
-    grid->SetColLabelValue(3,"Price");
-    // And set grid cell contents as strings
-    grid->SetCellValue( 0, 0, "wxGrid is good" );
-    // We can specify that some cells are read->only
-    grid->SetCellValue( 0, 3, "This is read->only" );
-    grid->SetReadOnly( 0, 3 );
-    // Colours can be specified for grid cell contents
-    grid->SetCellValue(3, 3, "green on grey");
-    grid->SetCellTextColour(3, 3, *wxGREEN);
-    grid->SetCellBackgroundColour(3, 3, *wxLIGHT_GREY);
-    // We can specify the some cells will store numeric
-    // values rather than strings. Here we set grid column 5
-    // to hold floating point values displayed with width of 6
-    // and precision of 2
-    grid->SetColFormatFloat(3, 2, 2);
-    grid->SetCellValue(0, 3, "3.1415");
+    fetchResult(fetchURL);
 }
