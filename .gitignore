@@ -3,3 +3,5 @@ ttop.kdev4
 ttop
 .vscode/
 .vscode/**
+*.o
+
