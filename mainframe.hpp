@@ -18,11 +18,15 @@ private:
   wxChoice* fuelsDropDown;
   wxTextCtrl* postalCodeEntry;
   wxButton* goButton;
+  wxButton* goLocationButton;
   wxStaticText* favoritesLabel;
   wxGrid* grid;
   wxCheckBox* nowOpenBox;
+  std::string latitude;
+  std::string longitude;
 
   void OnGoButtonClick(wxCommandEvent& event);
+  void OnGoLocationButtonClick(wxCommandEvent& event);
   void on_button_clear_clicked(wxCommandEvent& evt);
   void on_textField_change(wxCommandEvent& evt);
   void OnPaint(wxPaintEvent& event);

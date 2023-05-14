@@ -5,7 +5,6 @@
 #include <wx/url.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
-#include <wx/generic/grid.h>
 
 #include <jsoncpp/json/json.h>
 #include <locale>
@@ -63,18 +62,28 @@ void ResultWindow::fetchResult(std::string fetchURL) {
                 std::istringstream readBufferStream(readBuffer);
                 if (Json::parseFromStream(readerBuilder, readBufferStream, &jsonResponse, &parseErrors)) {
                     if (jsonResponse.isArray()) {
-                        this->grid->CreateGrid(jsonResponse.size(), 4);
+                        // Delete all columns if there are any
+if (this->grid->GetNumberCols() > 0) {
+    this->grid->DeleteCols(0, this->grid->GetNumberCols());
+}
+
+// Create new grid with new number of columns
+this->grid->CreateGrid(jsonResponse.size(), 4);
                         int row = 0;
                         for (const auto& station : jsonResponse) {
                             std::string name = station["name"].asString();
                             std::string address = station["location"]["address"].asString();
                             std::string open = station["openingHours"][0]["from"].asString() + "-" + station["openingHours"][0]["to"].asString();
-                            float price = station["prices"][0]["amount"].asFloat();
-
-                            // Adjust the precision of the price
-                            std::stringstream stream;
-                            stream << std::fixed << std::setprecision(4) << price;
-                            std::string priceStr = stream.str();
+                            
+                            std::string priceStr;
+                            if (station["prices"].empty()) {
+                                priceStr = "Not available";
+                            } else {
+                                float price = station["prices"][0]["amount"].asFloat();
+                                std::stringstream stream;
+                                stream << std::fixed << std::setprecision(4) << price;
+                                priceStr = stream.str();
+                            }
 
                             // Convert each std::string to wxString
                             wxString wxName(name.c_str(), wxConvUTF8);
@@ -121,11 +130,11 @@ void ResultWindow::fetchResult(std::string fetchURL) {
     this->grid->SetColSize(3, 250 / 2); // Halve size for "Price" column
 }
 
-ResultWindow::ResultWindow(wxWindow* parent, const wxString& title, const wxChoice& fuelsDropDown, wxCheckBox& nowOpenBox, wxString& regionCode)
+ResultWindow::ResultWindow(wxWindow* parent, const wxString& title, const wxChoice& fuelsDropDown, wxCheckBox& nowOpenBox, wxString& regionCode, std::string longitude, std::string latitude)
     : wxFrame(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE & ~(wxRESIZE_BORDER | wxMAXIMIZE_BOX)) {
-    
+    this->grid = new wxGrid(this, -1, wxPoint(0, 415), wxSize(1200, 800));
     wxString fuelType;
-    wxString includeClosed;
+    wxString includeClosed = nowOpenBox.IsChecked() ? "false" : "true";
     int selectedIndex = fuelsDropDown.GetCurrentSelection();
     switch (selectedIndex) {
         case 0:
@@ -142,15 +151,21 @@ ResultWindow::ResultWindow(wxWindow* parent, const wxString& title, const wxChoi
             fuelType = "DIE";
             break;
     }
-    includeClosed = nowOpenBox.IsChecked() ? "false" : "true";
-    std::string fetchURL = "https://api.e-control.at/sprit/1.0/search/gas-stations/by-region?code=";
-    fetchURL += regionCode.c_str() + "&type=BL&fuelType=" + fuelType.ToStdString() + "&includeClosed=" + includeClosed;
-    std::cout << fetchURL << std::endl;
+    if(longitude != "" and latitude != "") {
+        std::string fetchURL = "https://api.e-control.at/sprit/1.0/search/gas-stations/by-address?latitude="; 
+        fetchURL += latitude + "&longitude=" + longitude + "&fuelType=" + fuelType.ToStdString()+ "&includeClosed=" + includeClosed;
+                std::cout << fetchURL << std::endl;
+        fetchResult(fetchURL);
+    } else {
+        
+        std::string fetchURL = "https://api.e-control.at/sprit/1.0/search/gas-stations/by-region?code=";
+        fetchURL += regionCode.c_str() + "&type=BL&fuelType=" + fuelType.ToStdString() + "&includeClosed=" + includeClosed;
+        std::cout << fetchURL << std::endl;
+        fetchResult(fetchURL);
+    }
 
     SetClientSize(1000, 1250);
     Center();
-    this->grid = new wxGrid(this, -1, wxPoint(0, 415), wxSize(1200, 800));
     grid->SetDefaultRowSize(100,50);
     grid->SetDefaultColSize(230,100);
-    fetchResult(fetchURL);
 }

@@ -25,6 +25,30 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::stri
     return realsize;
 }
 
+std::string getGeolocation() {
+    CURL* curl;
+    CURLcode res;
+    std::string readBuffer;
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    curl = curl_easy_init();
+    if(curl) {
+        curl_easy_setopt(curl, CURLOPT_URL, "https://ipinfo.io/geo");
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+        res = curl_easy_perform(curl);
+
+        if(res != CURLE_OK) {
+            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        } else {
+            return readBuffer;
+        }
+        curl_easy_cleanup(curl);
+    }
+    curl_global_cleanup();
+    return "";
+}
+
 void MainFrame::OnPostalCodeEntrySetFocus(wxFocusEvent& event) {
     wxString currentValue = postalCodeEntry->GetValue();
     if (currentValue == "Enter postal code") {
@@ -43,7 +67,25 @@ void MainFrame::OnPostalCodeEntryKillFocus(wxFocusEvent& event) {
 
 void MainFrame::OnGoButtonClick(wxCommandEvent& event) {
     // render 2nd window here
-    ResultWindow* resultWindow = new ResultWindow(this, "Result", *fuelsDropDown, *nowOpenBox, *regionCode);
+    ResultWindow* resultWindow = new ResultWindow(this, "Result", *fuelsDropDown, *nowOpenBox, *regionCode, longitude, latitude);
+    resultWindow->Show();
+}
+
+void MainFrame::OnGoLocationButtonClick(wxCommandEvent& event) {
+      std::string response = getGeolocation();
+  Json::Value jsonData;
+  Json::Reader jsonReader;
+  if (jsonReader.parse(response, jsonData)) {
+    std::string loc = jsonData["loc"].asString();
+    size_t commaPos = loc.find(',');
+    latitude = loc.substr(0, commaPos);
+    longitude = loc.substr(commaPos + 1);
+    std::cout << "Latitude: " << latitude << "\n";
+    std::cout << "Longitude: " << longitude << "\n";
+} else {
+    std::cout << "Unable to get Location!" << std::endl;
+}
+    ResultWindow* resultWindow = new ResultWindow(this, "Result", *fuelsDropDown, *nowOpenBox, *regionCode, longitude, latitude);
     resultWindow->Show();
 }
 
@@ -65,7 +107,7 @@ void MainFrame::OnRegionSelected(wxCommandEvent& event) {
     // Create a static text to display "OR"
     wxStaticText* orText = new wxStaticText(panel, wxID_ANY, "OR", wxPoint(220, 215), wxSize(200,200));
     
-    goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 130), wxSize(100, 100));
+    goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 50), wxSize(100, 100));
     goButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoButtonClick, this);
 }
 
@@ -308,4 +350,10 @@ MainFrame::MainFrame(const wxString& title)
   // and precision of 2
   grid->SetColFormatFloat(3, 2, 2);
   grid->SetCellValue(0, 3, "3.1415");
+  
+  
+goLocationButton = new wxButton(panel, wxID_ANY, "Location", wxPoint(850, 200), wxSize(100, 100));
+goLocationButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoLocationButtonClick, this);
+
 }
+
