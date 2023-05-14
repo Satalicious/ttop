@@ -49,24 +49,9 @@ std::string getGeolocation() {
     return "";
 }
 
-void MainFrame::OnPostalCodeEntrySetFocus(wxFocusEvent& event) {
-    wxString currentValue = postalCodeEntry->GetValue();
-    if (currentValue == "Enter postal code") {
-        postalCodeEntry->SetValue("");  // Clear the default value
-    }
-    event.Skip();  // Allow other handlers to process the event
-}
-
-void MainFrame::OnPostalCodeEntryKillFocus(wxFocusEvent& event) {
-    wxString currentValue = postalCodeEntry->GetValue();
-    if (currentValue.IsEmpty()) {
-        postalCodeEntry->SetValue("Enter postal code");  // Restore the default value
-    }
-    event.Skip();  // Allow other handlers to process the event
-}
-
 void MainFrame::OnGoButtonClick(wxCommandEvent& event) {
     // render 2nd window here
+    longitude = latitude = "";
     ResultWindow* resultWindow = new ResultWindow(this, "Result", *fuelsDropDown, *nowOpenBox, *regionCode, longitude, latitude);
     resultWindow->Show();
 }
@@ -98,14 +83,6 @@ void MainFrame::OnRegionSelected(wxCommandEvent& event) {
     } else {
         postalDropDown->Clear();
     }
-    // Create a text field for the user to enter a postal code
-    postalCodeEntry = new wxTextCtrl(panel, wxID_ANY, "Enter postal code", wxPoint(100, 270), wxSize(280, 60));
-    // Add event handlers for the postal code entry text field
-    postalCodeEntry->Bind(wxEVT_SET_FOCUS, &MainFrame::OnPostalCodeEntrySetFocus, this);
-    postalCodeEntry->Bind(wxEVT_KILL_FOCUS, &MainFrame::OnPostalCodeEntryKillFocus, this);
-    
-    // Create a static text to display "OR"
-    wxStaticText* orText = new wxStaticText(panel, wxID_ANY, "OR", wxPoint(220, 215), wxSize(200,200));
     
     goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 50), wxSize(100, 100));
     goButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoButtonClick, this);

@@ -16,7 +16,6 @@ private:
   wxChoice* regionsDropDown;
   wxChoice* postalDropDown;
   wxChoice* fuelsDropDown;
-  wxTextCtrl* postalCodeEntry;
   wxButton* goButton;
   wxButton* goLocationButton;
   wxStaticText* favoritesLabel;
@@ -35,9 +34,6 @@ private:
   void fetchRegions();
   void fetchPostals();
   void OnRegionSelected(wxCommandEvent& event);
-
-  void OnPostalCodeEntrySetFocus(wxFocusEvent& event);
-  void OnPostalCodeEntryKillFocus(wxFocusEvent& event);
 };
 
 #endif  // MAINFRAME_HPP
