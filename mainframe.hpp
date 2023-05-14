@@ -5,35 +5,38 @@
 
 class MainFrame : public wxFrame {
 public:
-  MainFrame(const wxString& title);
+  MainFrame(const wxString &title);
+
 private:
   int regionsDropDownSelection;
-  wxPanel* panel;
-  wxArrayString* regions;
-  wxString* regionCode;
-  wxArrayString* postals;
+  wxPanel *panel;
+  wxArrayString *regions;
+  wxString *regionCode;
+  wxArrayString *postals;
   wxArrayString fuelType;
-  wxChoice* regionsDropDown;
-  wxChoice* postalDropDown;
-  wxChoice* fuelsDropDown;
-  wxButton* goButton;
-  wxButton* goLocationButton;
-  wxStaticText* favoritesLabel;
-  wxGrid* grid;
-  wxCheckBox* nowOpenBox;
+  wxChoice *regionsDropDown;
+  wxChoice *postalDropDown;
+  wxChoice *fuelsDropDown;
+  wxButton *goButton;
+  wxButton *refreshButton;
+  wxButton *goLocationButton;
+  wxStaticText *favoritesLabel;
+  wxGrid *grid;
+  wxCheckBox *nowOpenBox;
   std::string latitude;
   std::string longitude;
 
-  void OnGoButtonClick(wxCommandEvent& event);
-  void OnGoLocationButtonClick(wxCommandEvent& event);
-  void on_button_clear_clicked(wxCommandEvent& evt);
-  void on_textField_change(wxCommandEvent& evt);
-  void OnPaint(wxPaintEvent& event);
+  void PopulateGridFromDatabase(wxGrid *grid);
+  void OnGoButtonClick(wxCommandEvent &event);
+  void OnGoLocationButtonClick(wxCommandEvent &event);
+  void on_button_clear_clicked(wxCommandEvent &evt);
+  void on_textField_change(wxCommandEvent &evt);
+  void OnPaint(wxPaintEvent &event);
 
   void fetchWelcomingText();
   void fetchRegions();
   void fetchPostals();
-  void OnRegionSelected(wxCommandEvent& event);
+  void OnRegionSelected(wxCommandEvent &event);
 };
 
-#endif  // MAINFRAME_HPP
+#endif // MAINFRAME_HPP

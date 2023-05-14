@@ -10,10 +10,59 @@
 #include <wx/wx.h>
 
 #include <codecvt>
-#include <jsoncpp/json/json.h>
+#include <json/json.h>
 #include <locale>
 
 #include <wx/string.h>
+void MainFrame::PopulateGridFromDatabase(wxGrid *grid) {
+  // Open the SQLite database connection
+  sqlite3 *db;
+  int rc = sqlite3_open("sqlite.db", &db);
+  if (rc != SQLITE_OK) {
+    std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+    sqlite3_close(db);
+    return;
+  }
+
+  std::string sql =
+      "SELECT name, address, opening_hours, price FROM gasStations;";
+
+  sqlite3_stmt *stmt;
+  rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+  if (rc != SQLITE_OK) {
+    std::cerr << "SQL error: " << sqlite3_errmsg(db) << std::endl;
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    return;
+  }
+
+  int row = 0;
+  while (sqlite3_step(stmt) == SQLITE_ROW) {
+    const unsigned char *name = sqlite3_column_text(stmt, 0);
+    const unsigned char *address = sqlite3_column_text(stmt, 1);
+    const unsigned char *openingHours = sqlite3_column_text(stmt, 2);
+    double price = sqlite3_column_double(stmt, 3);
+
+    // Convert the retrieved data to wxString
+    wxString wxName(reinterpret_cast<const char *>(name), wxConvUTF8);
+    wxString wxAddress(reinterpret_cast<const char *>(address), wxConvUTF8);
+    wxString wxOpeningHours(reinterpret_cast<const char *>(openingHours),
+                            wxConvUTF8);
+    wxString wxPrice = wxString::Format("%.2f", price);
+
+    // Set the values in the grid
+    grid->SetCellValue(row, 0, wxName);
+    grid->SetCellValue(row, 1, wxAddress);
+    grid->SetCellValue(row, 2, wxOpeningHours);
+    grid->SetCellValue(row, 3, wxPrice);
+
+    row++;
+  }
+
+  // Finalize the prepared statement and close the database connection
+  sqlite3_finalize(stmt);
+  sqlite3_close(db);
+}
 
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
                             std::string *userp) {
@@ -28,38 +77,41 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
 }
 
 std::string getGeolocation() {
-    CURL* curl;
-    CURLcode res;
-    std::string readBuffer;
+  CURL *curl;
+  CURLcode res;
+  std::string readBuffer;
 
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-    curl = curl_easy_init();
-    if(curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, "https://ipinfo.io/geo");
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-        res = curl_easy_perform(curl);
+  curl_global_init(CURL_GLOBAL_DEFAULT);
+  curl = curl_easy_init();
+  if (curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, "https://ipinfo.io/geo");
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+    res = curl_easy_perform(curl);
 
-        if(res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-        } else {
-            return readBuffer;
-        }
-        curl_easy_cleanup(curl);
+    if (res != CURLE_OK) {
+      fprintf(stderr, "curl_easy_perform() failed: %s\n",
+              curl_easy_strerror(res));
+    } else {
+      return readBuffer;
     }
-    curl_global_cleanup();
-    return "";
+    curl_easy_cleanup(curl);
+  }
+  curl_global_cleanup();
+  return "";
 }
 
-void MainFrame::OnGoButtonClick(wxCommandEvent& event) {
-    // render 2nd window here
-    longitude = latitude = "";
-    ResultWindow* resultWindow = new ResultWindow(this, "Result", *fuelsDropDown, *nowOpenBox, *regionCode, longitude, latitude);
-    resultWindow->Show();
+void MainFrame::OnGoButtonClick(wxCommandEvent &event) {
+  // render 2nd window here
+  longitude = latitude = "";
+  ResultWindow *resultWindow =
+      new ResultWindow(this, "Result", *fuelsDropDown, *nowOpenBox, *regionCode,
+                       longitude, latitude);
+  resultWindow->Show();
 }
 
-void MainFrame::OnGoLocationButtonClick(wxCommandEvent& event) {
-      std::string response = getGeolocation();
+void MainFrame::OnGoLocationButtonClick(wxCommandEvent &event) {
+  std::string response = getGeolocation();
   Json::Value jsonData;
   Json::Reader jsonReader;
   if (jsonReader.parse(response, jsonData)) {
@@ -69,25 +121,28 @@ void MainFrame::OnGoLocationButtonClick(wxCommandEvent& event) {
     longitude = loc.substr(commaPos + 1);
     std::cout << "Latitude: " << latitude << "\n";
     std::cout << "Longitude: " << longitude << "\n";
-} else {
+  } else {
     std::cout << "Unable to get Location!" << std::endl;
-}
-    ResultWindow* resultWindow = new ResultWindow(this, "Result", *fuelsDropDown, *nowOpenBox, *regionCode, longitude, latitude);
-    resultWindow->Show();
+  }
+  ResultWindow *resultWindow =
+      new ResultWindow(this, "Result", *fuelsDropDown, *nowOpenBox, *regionCode,
+                       longitude, latitude);
+  resultWindow->Show();
 }
 
-void MainFrame::OnRegionSelected(wxCommandEvent& event) {
-    regionsDropDownSelection = regionsDropDown->GetSelection();
-    if(regionsDropDownSelection > 0) {
-        fetchPostals();
-        int intValue = regionsDropDownSelection;
-        regionCode = new wxString(wxString::Format(wxT("%d"), intValue));
-    } else {
-        postalDropDown->Clear();
-    }
-    
-    goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 50), wxSize(100, 100));
-    goButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoButtonClick, this);
+void MainFrame::OnRegionSelected(wxCommandEvent &event) {
+  regionsDropDownSelection = regionsDropDown->GetSelection();
+  if (regionsDropDownSelection > 0) {
+    fetchPostals();
+    int intValue = regionsDropDownSelection;
+    regionCode = new wxString(wxString::Format(wxT("%d"), intValue));
+  } else {
+    postalDropDown->Clear();
+  }
+
+  goButton =
+      new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 50), wxSize(100, 100));
+  goButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoButtonClick, this);
 }
 
 void MainFrame::OnPaint(wxPaintEvent &event) {
@@ -318,14 +373,18 @@ MainFrame::MainFrame(const wxString &title)
   nowOpenBox = new wxCheckBox(panel, wxID_ANY, "Now Open", wxPoint(520, 120),
                               wxSize(200, 100));
 
-  goLocationButton = new wxButton(panel, wxID_ANY, "Location", wxPoint(850, 200), wxSize(100, 100));
-  goLocationButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoLocationButtonClick, this);
+  goLocationButton = new wxButton(panel, wxID_ANY, "Location",
+                                  wxPoint(850, 200), wxSize(100, 100));
+  goLocationButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoLocationButtonClick,
+                         this);
 
   favoritesLabel = new wxStaticText(panel, wxID_ANY, "Favorites",
                                     wxPoint(450, 370), wxSize(400, 70));
 
   wxGrid *grid = new wxGrid(panel, -1, wxPoint(0, 415), wxSize(1200, 800));
-  // (100 rows and 10 columns in this example)
+  refreshButton = new wxButton(panel, wxID_ANY, "Refresh", wxPoint(150, 300),
+                               wxSize(100, 50));
+
   grid->CreateGrid(15, 4);
   // We can set the sizes of individual rows and columns
   // in pixels
@@ -338,6 +397,11 @@ MainFrame::MainFrame(const wxString &title)
   grid->SetColLabelValue(2, "Open");
   grid->SetColLabelValue(3, "Price");
 
+  refreshButton->Bind(wxEVT_BUTTON, [=](wxCommandEvent &event) {
+    PopulateGridFromDatabase(grid);
+    grid->ForceRefresh();
+  });
+  // (100 rows and 10 columns in this example)
   // Open the SQLite database connection
   sqlite3 *db;
   int rc = sqlite3_open("sqlite.db", &db);
@@ -346,46 +410,7 @@ MainFrame::MainFrame(const wxString &title)
     sqlite3_close(db);
     return;
   }
-
-  std::string sql =
-      "SELECT name, address, opening_hours, price FROM gasStations;";
-
-  sqlite3_stmt *stmt;
-  rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
-  if (rc != SQLITE_OK) {
-    std::cerr << "SQL error: " << sqlite3_errmsg(db) << std::endl;
-    sqlite3_finalize(stmt);
-    sqlite3_close(db);
-    return;
-  }
-
-  int row = 0;
-  while (sqlite3_step(stmt) == SQLITE_ROW) {
-    const unsigned char *name = sqlite3_column_text(stmt, 0);
-    const unsigned char *address = sqlite3_column_text(stmt, 1);
-    const unsigned char *openingHours = sqlite3_column_text(stmt, 2);
-    double price = sqlite3_column_double(stmt, 3);
-
-    // Convert the retrieved data to wxString
-    wxString wxName(reinterpret_cast<const char *>(name), wxConvUTF8);
-    wxString wxAddress(reinterpret_cast<const char *>(address), wxConvUTF8);
-    wxString wxOpeningHours(reinterpret_cast<const char *>(openingHours),
-                            wxConvUTF8);
-    wxString wxPrice = wxString::Format("%.2f", price);
-
-    // Set the values in the grid
-    grid->SetCellValue(row, 0, wxName);
-    grid->SetCellValue(row, 1, wxAddress);
-    grid->SetCellValue(row, 2, wxOpeningHours);
-    grid->SetCellValue(row, 3, wxPrice);
-
-    row++;
-  }
-
+  PopulateGridFromDatabase(grid);
   // Refresh the grid to reflect the changes
   grid->ForceRefresh();
-
-  sqlite3_finalize(stmt);
-  sqlite3_close(db);
 }
-
