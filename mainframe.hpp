@@ -11,10 +11,10 @@ private:
   wxPanel* panel;
   wxArrayString* regions;
   wxString* regionCode;
-  wxArrayString* postals;
+  wxArrayString* cities;
   wxArrayString fuelType;
   wxChoice* regionsDropDown;
-  wxChoice* postalDropDown;
+  wxChoice* citiesDropDown;
   wxChoice* fuelsDropDown;
   wxButton* goButton;
   wxButton* goLocationButton;
@@ -29,11 +29,11 @@ private:
   void on_button_clear_clicked(wxCommandEvent& evt);
   void on_textField_change(wxCommandEvent& evt);
   void OnPaint(wxPaintEvent& event);
-
   void fetchWelcomingText();
   void fetchRegions();
-  void fetchPostals();
+  void fetchCities();
   void OnRegionSelected(wxCommandEvent& event);
+  int getRegionCodeByCity(std::string cityName);
 };
 
 #endif  // MAINFRAME_HPP

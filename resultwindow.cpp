@@ -299,11 +299,11 @@ void ResultWindow::fetchResult(std::string fetchURL) {
   this->grid->SetColLabelValue(2, "Open");
   this->grid->SetColLabelValue(3, "Price");
   this->grid->SetColLabelValue(4, "Save");
-  this->grid->SetColSize(0, 200);     // Increase size for "Name" column
+  this->grid->SetColSize(0, 300);     // Increase size for "Name" column
   this->grid->SetColSize(1, 250);     // Increase size for "Name" column
   this->grid->SetColSize(2, 250 / 2); // Halve size for "Open" column
   this->grid->SetColSize(3, 250 / 2); // Halve size for "Price" column
-  this->grid->SetColSize(4, 100);     // Halve size for "Price" column
+  this->grid->SetColSize(4, 120);     // size for Save Button     
 }
 
 ResultWindow::ResultWindow(wxWindow* parent, const wxString& title, const wxChoice& fuelsDropDown, wxCheckBox& nowOpenBox, wxString& regionCode, std::string longitude, std::string latitude)
@@ -332,15 +332,14 @@ ResultWindow::ResultWindow(wxWindow* parent, const wxString& title, const wxChoi
             break;
     }
     if(longitude != "" and latitude != "") {
+      //https://api.e-control.at/sprit/1.0/search/gas-stations/by-region?code=101&type=PB&fuelType=DIE&includeClosed=false
         std::string fetchURL = "https://api.e-control.at/sprit/1.0/search/gas-stations/by-address?latitude="; 
         fetchURL += latitude + "&longitude=" + longitude + "&fuelType=" + fuelType.ToStdString()+ "&includeClosed=" + includeClosed;
-                std::cout << fetchURL << std::endl;
         fetchResult(fetchURL);
     } else {
         
         std::string fetchURL = "https://api.e-control.at/sprit/1.0/search/gas-stations/by-region?code=";
-        fetchURL += regionCode.c_str() + "&type=BL&fuelType=" + fuelType.ToStdString() + "&includeClosed=" + includeClosed;
-        std::cout << fetchURL << std::endl;
+        fetchURL += regionCode.c_str() + "&type=PB&fuelType=" + fuelType.ToStdString() + "&includeClosed=" + includeClosed;
         fetchResult(fetchURL);
     }
 
