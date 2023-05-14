@@ -5,7 +5,8 @@
 
 class MainFrame : public wxFrame {
 public:
-  MainFrame(const wxString& title);
+  MainFrame(const wxString &title);
+
 private:
   int regionsDropDownSelection;
   wxPanel* panel;
@@ -18,12 +19,13 @@ private:
   wxChoice* fuelsDropDown;
   wxButton* goButton;
   wxButton* goLocationButton;
+  wxButton* refreshButton;
   wxStaticText* favoritesLabel;
   wxGrid* grid;
   wxCheckBox* nowOpenBox;
   std::string latitude;
   std::string longitude;
-
+  void PopulateGridFromDatabase(wxGrid *grid);
   void OnGoButtonClick(wxCommandEvent& event);
   void OnGoLocationButtonClick(wxCommandEvent& event);
   void on_button_clear_clicked(wxCommandEvent& evt);
@@ -36,4 +38,4 @@ private:
   int getRegionCodeByCity(std::string cityName);
 };
 
-#endif  // MAINFRAME_HPP
+#endif // MAINFRAME_HPP

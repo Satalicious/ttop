@@ -227,31 +227,34 @@ void ResultWindow::fetchResult(std::string fetchURL) {
         Json::Value jsonResponse;
         std::string parseErrors;
 
-                std::istringstream readBufferStream(readBuffer);
-                if (Json::parseFromStream(readerBuilder, readBufferStream, &jsonResponse, &parseErrors)) {
-                    if (jsonResponse.isArray()) {
-                        // Delete all columns if there are any
-                    if (this->grid->GetNumberCols() > 0) {
-                        this->grid->DeleteCols(0, this->grid->GetNumberCols());
-                    }
+        std::istringstream readBufferStream(readBuffer);
+        if (Json::parseFromStream(readerBuilder, readBufferStream,
+                                  &jsonResponse, &parseErrors)) {
+          if (jsonResponse.isArray()) {
+            // Delete all columns if there are any
+            if (this->grid->GetNumberCols() > 0) {
+              this->grid->DeleteCols(0, this->grid->GetNumberCols());
+            }
 
-                      // Create new grid with new number of columns
-                      this->grid->CreateGrid(jsonResponse.size(), 5);
-                        int row = 0;
-                        for (const auto& station : jsonResponse) {
-                            std::string name = station["name"].asString();
-                            std::string address = station["location"]["address"].asString();
-                            std::string open = station["openingHours"][0]["from"].asString() + "-" + station["openingHours"][0]["to"].asString();
-                            
-                            std::string priceStr;
-                            if (station["prices"].empty()) {
-                                priceStr = "Not available";
-                            } else {
-                                float price = station["prices"][0]["amount"].asFloat();
-                                std::stringstream stream;
-                                stream << std::fixed << std::setprecision(4) << price;
-                                priceStr = stream.str();
-                            }
+            // Create new grid with new number of columns
+            this->grid->CreateGrid(jsonResponse.size(), 5);
+            int row = 0;
+            for (const auto &station : jsonResponse) {
+              std::string name = station["name"].asString();
+              std::string address = station["location"]["address"].asString();
+              std::string open = station["openingHours"][0]["from"].asString() +
+                                 "-" +
+                                 station["openingHours"][0]["to"].asString();
+
+              std::string priceStr;
+              if (station["prices"].empty()) {
+                priceStr = "Not available";
+              } else {
+                float price = station["prices"][0]["amount"].asFloat();
+                std::stringstream stream;
+                stream << std::fixed << std::setprecision(4) << price;
+                priceStr = stream.str();
+              }
 
               // Convert each std::string to wxString
               wxString wxName(name.c_str(), wxConvUTF8);
@@ -343,4 +346,12 @@ ResultWindow::ResultWindow(wxWindow* parent, const wxString& title, const wxChoi
         fetchResult(fetchURL);
     }
 
+    std::string fetchURL = "https://api.e-control.at/sprit/1.0/search/"
+                           "gas-stations/by-region?code=";
+    fetchURL += regionCode.c_str() +
+                "&type=BL&fuelType=" + fuelType.ToStdString() +
+                "&includeClosed=" + includeClosed;
+    std::cout << fetchURL << std::endl;
+    fetchResult(fetchURL);
 }
+
