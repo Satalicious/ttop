@@ -1,10 +1,15 @@
-#include <wx/wx.h>
 #include <wx/generic/grid.h>
+#include <wx/wx.h>
 class ResultWindow : public wxFrame {
 public:
-    ResultWindow(wxWindow* parent, const wxString& title, const wxChoice& fuelsDropDown, wxCheckBox& nowOpenBox, wxString& regionCode);
+  ResultWindow(wxWindow *parent, const wxString &title,
+               const wxChoice &fuelsDropDown, wxCheckBox &nowOpenBox,
+               wxString &regionCode);
 
 private:
-    wxGrid* grid;
-    void fetchResult(std::string fetchURL);
+  wxGrid *grid;
+  void fetchResult(std::string fetchURL);
+  wxButton *saveButton;
+  //   void OnButtonClick(wxGridEvent &event);
+  void OnButtonClick(wxCommandEvent &event);
 };

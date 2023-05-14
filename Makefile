@@ -6,6 +6,7 @@ APPLICATION := ttop
 OBJECTS := mainframe.o app.o resultwindow.o
 
 LIBS += -lcurl -ljsoncpp `wx-config --libs net`
+LIBS += /usr/lib/x86_64-linux-gnu/libsqlite3.so.0
 
 CXXFLAGS += `wx-config --cxxflags net`
 
