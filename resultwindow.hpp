@@ -2,7 +2,7 @@
 #include <wx/wx.h>
 class ResultWindow : public wxFrame {
 public:
-    ResultWindow(wxWindow* parent, const wxString& title, const wxChoice& fuelsDropDown, wxCheckBox& nowOpenBox, wxString& regionCode, std::string longitude, std::string latitude);
+    ResultWindow(wxWindow* parent, const wxString& title, const wxChoice& fuelsDropDown, wxCheckBox& nowOpenBox, std::string cityCode, std::string longitude, std::string latitude);
 
 private:
   wxGrid *grid;
