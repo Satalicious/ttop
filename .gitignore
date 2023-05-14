@@ -4,4 +4,4 @@ ttop
 .vscode/
 .vscode/**
 *.o
-
+sqlite.db
