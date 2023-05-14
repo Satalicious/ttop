@@ -278,6 +278,7 @@ MainFrame::MainFrame(const wxString &title)
   CreateStatusBar();
   Bind(wxEVT_PAINT, &MainFrame::OnPaint, this);
   fetchWelcomingText();
+  // TODO: Add a refresh button to refresh the content of the grid
 
   postals = new wxArrayString;
   regions = new wxArrayString;
@@ -342,19 +343,6 @@ MainFrame::MainFrame(const wxString &title)
     return;
   }
 
-  // Execute the prepared statement and print the results
-  int idx = 0;
-  //   while (sqlite3_step(stmt) == SQLITE_ROW) {
-  //     const unsigned char *name = sqlite3_column_text(stmt, 0);
-  //     const unsigned char *address = sqlite3_column_text(stmt, 1);
-  //     const unsigned char *openingHours = sqlite3_column_text(stmt, 2);
-  //     double price = sqlite3_column_double(stmt, 3);
-  //     std::cout << "Name: " << name << std::endl;
-  //     std::cout << "Address: " << address << std::endl;
-  //     std::cout << "Opening Hours: " << openingHours << std::endl;
-  //     std::cout << "Price: " << price << std::endl;
-  //     idx++;
-  //   }
   int row = 0;
   while (sqlite3_step(stmt) == SQLITE_ROW) {
     const unsigned char *name = sqlite3_column_text(stmt, 0);

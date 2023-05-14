@@ -31,6 +31,7 @@ private:
 };
 
 void CustomButton::OnButtonClicked(wxCommandEvent &event) {
+  std::cout << "Clicked Me" << std::endl;
   if (m_grid) {
     int row = m_grid->GetGridCursorRow();
     int numCols = m_grid->GetNumberCols();
