@@ -1,6 +1,6 @@
 # ttop
 
-`ttop` is a little GUI to help you find cheap gas stations in austria. It is using a public api from `https://www.e-control.at/`.
+`ttop` is a WX Desktop Application to help you find cheap gas stations. It is using a public api from `https://www.e-control.at/`.
 You can find it [here](https://api.e-control.at/sprit/1.0/doc/index.html?url=https://api.e-control.at/sprit/1.0/api-docs%3Fgroup%3Dpublic-api#/ping/pingUsingGET_3).
 
 # Screenshots
@@ -29,6 +29,11 @@ sudo apt-get install libwxgtk3.0-dev libcurl4-openssl-dev libjsoncpp-dev sqlite3
 
 You can then clone this repository and compile the project with make.
 
+Run it with
+
+```
+./ttop
+```
 
 
 ## Lizenz
