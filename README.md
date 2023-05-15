@@ -1,7 +1,7 @@
 # ttop
 
-`ttop` is a terminal-based application that provides a simplified interface for monitoring system processes and resources. With a built-in capability to fetch data via curl and parse JSON objects, it is a powerful tool for system administrators and tech-savvy individuals.
-
+`ttop` is a little GUI to help you find cheap gas stations in austria. It is using a public api from `https://www.e-control.at/`.
+You can find it [here](https://api.e-control.at/sprit/1.0/doc/index.html?url=https://api.e-control.at/sprit/1.0/api-docs%3Fgroup%3Dpublic-api#/ping/pingUsingGET_3).
 
 # Screenshots
 
