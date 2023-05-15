@@ -5,9 +5,9 @@
 
 # Screenshots
 
-<img src="./screenshots/Screenshot_20230515_094655.png" width="800" height="900">
-<img src="./screenshots/Screenshot_20230515_094837.png" width="800" height="900">
-<img src="./screenshots/Screenshot_20230515_094822.png" width="800" height="900">
+<img src="./screenshots/Screenshot_20230515_094655.png" width="500" height="600">
+<img src="./screenshots/Screenshot_20230515_094837.png" width="500" height="600">
+<img src="./screenshots/Screenshot_20230515_094822.png" width="500" height="600">
 
 # Dependecies
 
