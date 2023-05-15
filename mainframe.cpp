@@ -134,21 +134,27 @@ void MainFrame::OnRegionSelected(wxCommandEvent &event) {
   regionsDropDownSelection = regionsDropDown->GetSelection();
   if (regionsDropDownSelection > 0) {
     fetchCities();
+    cityCode = "";
+    citiesDropDown->SetSelection(0);
+    wxString selectedCity = citiesDropDown->GetStringSelection();
+    std::string selectedCityStr = selectedCity.ToStdString(); // convert wxString to std::string
+    int cityCodeInt = getRegionCodeByCity(selectedCityStr);
+    cityCode = wxString::Format(wxT("%d"), cityCodeInt);
+    goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 50), wxSize(100, 100));
+    goButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoButtonClick, this);
+    goButton->Enable();
+    citiesDropDown->Enable();
+  } else {
+    goButton->Disable();
+    citiesDropDown->Disable();
   }
-  cityCode = "";
 }
 
 void MainFrame::OnCitySelected(wxCommandEvent &event) {
   wxString selectedCity = citiesDropDown->GetStringSelection();
-  std::string selectedCityStr =
-      selectedCity.ToStdString(); // convert wxString to std::string
+  std::string selectedCityStr = selectedCity.ToStdString(); // convert wxString to std::string
   int cityCodeInt = getRegionCodeByCity(selectedCityStr);
   cityCode = wxString::Format(wxT("%d"), cityCodeInt);
-  std::cout << "cityCode: " << cityCode
-            << " selectedCityStr: " << selectedCityStr << std::endl;
-  goButton =
-      new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 50), wxSize(100, 100));
-  goButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoButtonClick, this);
 }
 
 int MainFrame::getRegionCodeByCity(std::string cityName) {
@@ -378,8 +384,6 @@ void MainFrame::fetchCities() {
 
                 // Convert the city name to wxString with UTF-8 encoding
                 wxString wxCityName(cityName.c_str(), wxConvUTF8);
-
-                std::cout << wxCityName.ToUTF8().data() << std::endl;
 
                 cities->Add(wxCityName);
               }
