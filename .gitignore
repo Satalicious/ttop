@@ -5,3 +5,4 @@ ttop
 .vscode/**
 *.o
 sqlite.db
+*.gch
