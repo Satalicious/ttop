@@ -27,16 +27,46 @@ sudo apt-get update
 sudo apt-get install libwxgtk3.0-dev libcurl4-openssl-dev libjsoncpp-dev sqlite3 libsqlite3-dev
 ```
 
-You can then clone this repository and compile the project with make.
+# How to compile
 
-Run it with
+Follow these steps:
+
+Clone this repository to your local machine:
+
+```sh
+git clone https://github.com/yourusername/ttop.git
+```
+
+Navigate to the project's directory:
+
+```sh
+cd ttop
+```
+Compile the application with make:
+
+```sh
+make
+```
+
+## OR
+
+```
+# compile each source file into an object file
+g++ -c mainframe.cpp -o mainframe.o `wx-config --cxxflags`
+g++ -c app.cpp -o app.o `wx-config --cxxflags`
+g++ -c resultwindow.cpp -o resultwindow.o `wx-config --cxxflags`
+
+# link the object files into a binary
+g++ mainframe.o app.o resultwindow.o -o ttop `wx-config --libs` -lcurl -ljsoncpp -lsqlite3
+```
+
+# How to launch
 
 ```
 ./ttop
 ```
 
-
-## License
+# License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 

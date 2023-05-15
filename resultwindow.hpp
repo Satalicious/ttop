@@ -6,7 +6,7 @@ public:
 
 private:
   wxGrid *grid;
-  void fetchResult(std::string fetchURL);
+  void FetchResult(std::string fetchURL);
   wxButton *saveButton;
   //   void OnButtonClick(wxGridEvent &event);
   void OnButtonClick(wxCommandEvent &event);

@@ -77,7 +77,7 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
   return realsize;
 }
 
-std::string getGeolocation() {
+std::string GetGeolocation() {
   CURL *curl;
   CURLcode res;
   std::string readBuffer;
@@ -112,7 +112,7 @@ void MainFrame::OnGoButtonClick(wxCommandEvent &event) {
 }
 
 void MainFrame::OnGoLocationButtonClick(wxCommandEvent &event) {
-  std::string response = getGeolocation();
+  std::string response = GetGeolocation();
   Json::Value jsonData;
   Json::Reader jsonReader;
   if (jsonReader.parse(response, jsonData)) {
@@ -133,12 +133,12 @@ void MainFrame::OnGoLocationButtonClick(wxCommandEvent &event) {
 void MainFrame::OnRegionSelected(wxCommandEvent &event) {
   regionsDropDownSelection = regionsDropDown->GetSelection();
   if (regionsDropDownSelection > 0) {
-    fetchCities();
+    FetchCities();
     cityCode = "";
     citiesDropDown->SetSelection(0);
     wxString selectedCity = citiesDropDown->GetStringSelection();
     std::string selectedCityStr = selectedCity.ToStdString(); // convert wxString to std::string
-    int cityCodeInt = getRegionCodeByCity(selectedCityStr);
+    int cityCodeInt = GetRegionCodeByCity(selectedCityStr);
     cityCode = wxString::Format(wxT("%d"), cityCodeInt);
     goButton = new wxButton(panel, wxID_ANY, "GO", wxPoint(850, 50), wxSize(100, 100));
     goButton->Bind(wxEVT_BUTTON, &MainFrame::OnGoButtonClick, this);
@@ -153,11 +153,11 @@ void MainFrame::OnRegionSelected(wxCommandEvent &event) {
 void MainFrame::OnCitySelected(wxCommandEvent &event) {
   wxString selectedCity = citiesDropDown->GetStringSelection();
   std::string selectedCityStr = selectedCity.ToStdString(); // convert wxString to std::string
-  int cityCodeInt = getRegionCodeByCity(selectedCityStr);
+  int cityCodeInt = GetRegionCodeByCity(selectedCityStr);
   cityCode = wxString::Format(wxT("%d"), cityCodeInt);
 }
 
-int MainFrame::getRegionCodeByCity(std::string cityName) {
+int MainFrame::GetRegionCodeByCity(std::string cityName) {
   CURL *curl = curl_easy_init();
   CURLcode res;
   std::string readBuffer;
@@ -238,7 +238,7 @@ void MainFrame::OnPaint(wxPaintEvent &event) {
   dc.DrawLine(0, 410, 1000, 410);
 }
 
-void MainFrame::fetchWelcomingText() {
+void MainFrame::FetchWelcomingText() {
   CURL *curl = curl_easy_init();
   std::string response;
   if (curl) {
@@ -270,7 +270,7 @@ void MainFrame::fetchWelcomingText() {
   }
 }
 
-void MainFrame::fetchRegions() {
+void MainFrame::FetchRegions() {
   CURL *curl = curl_easy_init();
   CURLcode res;
   std::string readBuffer;
@@ -333,7 +333,7 @@ void MainFrame::fetchRegions() {
   curl_global_cleanup();
 }
 
-void MainFrame::fetchCities() {
+void MainFrame::FetchCities() {
   citiesDropDown->Clear();
   cities->Clear();
 
@@ -419,14 +419,14 @@ MainFrame::MainFrame(const wxString &title)
 
   CreateStatusBar();
   Bind(wxEVT_PAINT, &MainFrame::OnPaint, this);
-  fetchWelcomingText();
+  FetchWelcomingText();
   // TODO: Add a refresh button to refresh the content of the grid
 
   cities = new wxArrayString;
   regions = new wxArrayString;
   regions->Add("Select Region");
   // fetching regions and adding them to 'regions'
-  fetchRegions();
+  FetchRegions();
   regionsDropDown = new wxChoice(panel, wxID_ANY, wxPoint(100, 70),
                                  wxSize(300, 70), *regions);
   // when a region gets selected, we fetch the postals

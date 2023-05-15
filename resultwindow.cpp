@@ -194,7 +194,7 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
   return realsize;
 }
 
-void ResultWindow::fetchResult(std::string fetchURL) {
+void ResultWindow::FetchResult(std::string fetchURL) {
   CURL *curl = curl_easy_init();
   CURLcode res;
   std::string readBuffer;
@@ -345,13 +345,13 @@ ResultWindow::ResultWindow(wxWindow *parent, const wxString &title,
     fetchURL += latitude + "&longitude=" + longitude +
                 "&fuelType=" + fuelType.ToStdString() +
                 "&includeClosed=" + includeClosed;
-    fetchResult(fetchURL);
+    FetchResult(fetchURL);
   } else {
 
     std::string fetchURL = "https://api.e-control.at/sprit/1.0/search/"
                            "gas-stations/by-region?code=";
     fetchURL += cityCode + "&type=PB&fuelType=" + fuelType.ToStdString() +
                 "&includeClosed=" + includeClosed;
-    fetchResult(fetchURL);
+    FetchResult(fetchURL);
   }
 }

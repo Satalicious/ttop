@@ -28,15 +28,15 @@ private:
   void PopulateGridFromDatabase(wxGrid *grid);
   void OnGoButtonClick(wxCommandEvent &event);
   void OnGoLocationButtonClick(wxCommandEvent &event);
-  void on_button_clear_clicked(wxCommandEvent &evt);
-  void on_textField_change(wxCommandEvent &evt);
+  void On_button_clear_clicked(wxCommandEvent &evt);
+  void On_textField_change(wxCommandEvent &evt);
   void OnPaint(wxPaintEvent &event);
-  void fetchWelcomingText();
-  void fetchRegions();
-  void fetchCities();
+  void FetchWelcomingText();
+  void FetchRegions();
+  void FetchCities();
   void OnRegionSelected(wxCommandEvent &event);
   void OnCitySelected(wxCommandEvent &event);
-  int getRegionCodeByCity(std::string cityName);
+  int GetRegionCodeByCity(std::string cityName);
 };
 
 #endif // MAINFRAME_HPP
