@@ -34,7 +34,7 @@ Follow these steps:
 Clone this repository to your local machine:
 
 ```sh
-git clone https://github.com/yourusername/ttop.git
+git clone https://github.com/Satalicious/ttop.git
 ```
 
 Navigate to the project's directory:
