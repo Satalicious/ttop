@@ -8,6 +8,7 @@ public:
   MainFrame(const wxString &title);
   void PopulateGridFromDatabase(wxGrid *grid);
   std::string FetchWelcomingText();
+  static size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *userp);
 
 private:
   int regionsDropDownSelection;

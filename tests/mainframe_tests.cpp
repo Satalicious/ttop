@@ -20,11 +20,6 @@ public:
     }
 };
 
-size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
-    ((std::string*)userp)->append((char*)contents, size * nmemb);
-    return size * nmemb;
-}
-
 TEST_CASE("API is reachable") {
     int argc = 0;
     char **argv = nullptr;
@@ -43,13 +38,14 @@ TEST_CASE("API is reachable") {
 TEST_CASE("Test WriteCallback function", "[WriteCallback]") {
     //testing the scenario when the function is given a non-empty string,
     //and we are checking if it correctly appends it
+
     SECTION("Appends non-empty content to string") {
         char content[] = "hello, world!";
         size_t size = 1;
         size_t nmemb = sizeof(content) - 1;
         std::string userString;
 
-        size_t bytesWritten = WriteCallback(content, size, nmemb, &userString);
+        size_t bytesWritten = MainFrame::WriteCallback(content, size, nmemb, &userString); // <-- Modify this line
 
         REQUIRE(userString == "hello, world!");
         REQUIRE(bytesWritten == sizeof(content) - 1);
@@ -62,7 +58,7 @@ TEST_CASE("Test WriteCallback function", "[WriteCallback]") {
         size_t nmemb = sizeof(content) - 1;
         std::string userString = "original";
 
-        size_t bytesWritten = WriteCallback(content, size, nmemb, &userString);
+        size_t bytesWritten = MainFrame::WriteCallback(content, size, nmemb, &userString); // <-- Modify this line
 
         REQUIRE(userString == "original");
         REQUIRE(bytesWritten == 0);

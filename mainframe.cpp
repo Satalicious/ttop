@@ -65,7 +65,7 @@ void MainFrame::PopulateGridFromDatabase(wxGrid *grid) {
   sqlite3_close(db);
 }
 
-static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
+size_t MainFrame::WriteCallback(void *contents, size_t size, size_t nmemb,
                             std::string *userp) {
   size_t realsize = size * nmemb;
   if (realsize > 0) {
@@ -86,7 +86,7 @@ std::string GetGeolocation() {
   curl = curl_easy_init();
   if (curl) {
     curl_easy_setopt(curl, CURLOPT_URL, "https://ipinfo.io/geo");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, MainFrame::WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
     res = curl_easy_perform(curl);
 
@@ -169,7 +169,7 @@ int MainFrame::GetRegionCodeByCity(std::string cityName) {
     curl_easy_setopt(
         curl, CURLOPT_URL,
         "https://api.e-control.at/sprit/1.0/regions?includeCities=true");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, MainFrame::WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 
@@ -244,7 +244,7 @@ std::string MainFrame::FetchWelcomingText() {
   if (curl) {
     curl_easy_setopt(curl, CURLOPT_URL,
                      "https://api.e-control.at/sprit/1.0/ping");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, MainFrame::WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
@@ -284,7 +284,7 @@ void MainFrame::FetchRegions() {
     curl_easy_setopt(
         curl, CURLOPT_URL,
         "https://api.e-control.at/sprit/1.0/regions?includeCities=false");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, MainFrame::WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
     struct curl_slist *headers = NULL;
@@ -350,7 +350,7 @@ void MainFrame::FetchCities() {
     curl_easy_setopt(
         curl, CURLOPT_URL,
         "https://api.e-control.at/sprit/1.0/regions?includeCities=false");
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, MainFrame::WriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 
