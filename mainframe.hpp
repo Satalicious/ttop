@@ -30,6 +30,7 @@ private:
   void OnGoButtonClick(wxCommandEvent &event);
   void OnGoLocationButtonClick(wxCommandEvent &event);
   void On_button_clear_clicked(wxCommandEvent &evt);
+  void On_textField_change(wxCommandEvent &evt);
   void OnPaint(wxPaintEvent &event);
   void FetchRegions();
   void FetchCities();

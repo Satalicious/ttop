@@ -24,7 +24,8 @@ size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
 }
-TEST_CASE("GUI Test - FetchWelcomingText", "[wxWidgets]") {
+
+TEST_CASE("API is reachable") {
     int argc = 0;
     char **argv = nullptr;
     wxApp::SetInstance(new MyApp());
@@ -33,7 +34,37 @@ TEST_CASE("GUI Test - FetchWelcomingText", "[wxWidgets]") {
     SECTION("Test FetchWelcomingText") {
         MainFrame frame("Test");
         std::string result = frame.FetchWelcomingText();
+        REQUIRE(!result.empty());
     }
 
     wxUninitialize();
+}
+
+TEST_CASE("Test WriteCallback function", "[WriteCallback]") {
+    //testing the scenario when the function is given a non-empty string,
+    //and we are checking if it correctly appends it
+    SECTION("Appends non-empty content to string") {
+        char content[] = "hello, world!";
+        size_t size = 1;
+        size_t nmemb = sizeof(content) - 1;
+        std::string userString;
+
+        size_t bytesWritten = WriteCallback(content, size, nmemb, &userString);
+
+        REQUIRE(userString == "hello, world!");
+        REQUIRE(bytesWritten == sizeof(content) - 1);
+    }
+
+    SECTION("Appends empty content to string") {
+        // checking if it leaves unchanged when empty
+        char content[] = "";
+        size_t size = 1;
+        size_t nmemb = sizeof(content) - 1;
+        std::string userString = "original";
+
+        size_t bytesWritten = WriteCallback(content, size, nmemb, &userString);
+
+        REQUIRE(userString == "original");
+        REQUIRE(bytesWritten == 0);
+    }
 }
