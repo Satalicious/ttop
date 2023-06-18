@@ -6,6 +6,8 @@
 class MainFrame : public wxFrame {
 public:
   MainFrame(const wxString &title);
+  void PopulateGridFromDatabase(wxGrid *grid);
+  std::string FetchWelcomingText();
 
 private:
   int regionsDropDownSelection;
@@ -25,13 +27,10 @@ private:
   std::string latitude;
   std::string longitude;
   wxButton *refreshButton;
-  void PopulateGridFromDatabase(wxGrid *grid);
   void OnGoButtonClick(wxCommandEvent &event);
   void OnGoLocationButtonClick(wxCommandEvent &event);
   void On_button_clear_clicked(wxCommandEvent &evt);
-  void On_textField_change(wxCommandEvent &evt);
   void OnPaint(wxPaintEvent &event);
-  void FetchWelcomingText();
   void FetchRegions();
   void FetchCities();
   void OnRegionSelected(wxCommandEvent &event);

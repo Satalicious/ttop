@@ -21,3 +21,24 @@ $(OBJECTS): %.o: %.cpp
 .PHONY: clean
 clean:
 	find . -name '*~' -o -name '*.o' -o -name $(APPLICATION) | xargs rm
+
+
+TEST_EXEC := mainframe_tests
+TEST_OBJECTS := tests/mainframe_tests.o
+
+.PHONY: test
+test: $(TEST_EXEC)
+
+$(TEST_EXEC): $(TEST_OBJECTS) mainframe.o resultwindow.o catch_amalgamated.o
+	$(CXX) -o $@ $(TEST_OBJECTS) mainframe.o resultwindow.o catch_amalgamated.o $(LDFLAGS) $(WX_LIBS) $(LIBS)
+
+catch_amalgamated.o: tests/catch_amalgamated.cpp
+	$(CXX) -c -o $@ $(CXXFLAGS) $<
+
+$(TEST_OBJECTS): tests/%.o: tests/%.cpp
+	$(CXX) -c -o $@ $(WX_CXXFLAGS) $(CXXFLAGS) -I./tests $<
+
+
+.PHONY: clean_test
+clean_test:
+	rm -f tests/mainframe_tests.o catch_amalgamated.o mainframe_tests

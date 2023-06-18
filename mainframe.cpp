@@ -238,7 +238,7 @@ void MainFrame::OnPaint(wxPaintEvent &event) {
   dc.DrawLine(0, 410, 1000, 410);
 }
 
-void MainFrame::FetchWelcomingText() {
+std::string MainFrame::FetchWelcomingText() {
   CURL *curl = curl_easy_init();
   std::string response;
   if (curl) {
@@ -250,8 +250,10 @@ void MainFrame::FetchWelcomingText() {
     if (res != CURLE_OK) {
       // handle error
       wxLogStatus("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+      return("");
     }
     curl_easy_cleanup(curl);
+    return("success");
   }
 
   // Create a temporary scope to modify and restore the font
